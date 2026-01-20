@@ -19,58 +19,65 @@ import com.trueme.productcatalogservice.entity.enums.SkinType;
 @Builder
 public class Product {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(nullable = false, length = 255)
-    private String name;
+	@Column(nullable = false, length = 255)
+	private String name;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+	@Column(columnDefinition = "TEXT")
+	private String description;
 
-    @Column(name = "image_url", length = 1000)
-    private String imageUrl;
+	@Column(name = "image_url", length = 1000)
+	private String imageUrl;
 
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal price;
+	@Column(nullable = false, precision = 12, scale = 2)
+	private BigDecimal price;
 
-    @Column(nullable = false)
-    private Integer qty;
+	@Column(name = "ml", nullable = false)
+	private Integer ml;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "product_status", nullable = false)
-    private ProductStatus productStatus;
+	@Column(nullable = false)
+	private Integer qty;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "skin_type", nullable = false)
-    private SkinType skinType;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "product_status", nullable = false)
+	private ProductStatus productStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "product_type", nullable = false)
-    private ProductType productType;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "skin_type", nullable = false)
+	private SkinType skinType;
 
-    @Column(name = "product_ph_value", precision = 3, scale = 1)
-    private BigDecimal productPhValue;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "product_type", nullable = false)
+	private ProductType productType;
 
-    // Comes from Auth Service (no FK)
-    @Column(name = "seller_id", nullable = false)
-    private Long sellerId;
+	@Column(name = "product_ph_value", precision = 3, scale = 1)
+	private BigDecimal productPhValue;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+	@Column(name = "is_active", nullable = false)
+	@Builder.Default
+	private Boolean isActive = true;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+	// Comes from Auth Service 
+	@Column(name = "seller_id", nullable = false)
+	private Long sellerId;
 
-    @PrePersist
-    void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
+	@Column(name = "created_at", updatable = false)
+	private LocalDateTime createdAt;
 
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+	@Column(name = "updated_at")
+	private LocalDateTime updatedAt;
+
+	@PrePersist
+	void onCreate() {
+		createdAt = LocalDateTime.now();
+		updatedAt = LocalDateTime.now();
+	}
+
+	@PreUpdate
+	void onUpdate() {
+		updatedAt = LocalDateTime.now();
+	}
 }

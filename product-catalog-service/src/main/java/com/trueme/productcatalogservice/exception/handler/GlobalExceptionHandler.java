@@ -1,0 +1,217 @@
+package com.trueme.productcatalogservice.exception.handler;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.trueme.productcatalogservice.dto.ApiError;
+import com.trueme.productcatalogservice.errocode.ProductErrorCode;
+import com.trueme.productcatalogservice.errocode.WishlistErrorCode;
+import com.trueme.productcatalogservice.exception.ProductException;
+import com.trueme.productcatalogservice.exception.WishlistException;
+import com.trueme.productcatalogservice.exception.product.ProductAlreadyExistsException;
+import com.trueme.productcatalogservice.exception.product.ProductNotFoundException;
+import com.trueme.productcatalogservice.exception.product.ProductOutOfStockException;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ApiError> handleValidationException(
+			MethodArgumentNotValidException ex,
+			HttpServletRequest request) {
+
+		List<String> details = ex.getBindingResult()
+				.getFieldErrors()
+				.stream()
+				.map(error ->
+				error.getField() + ": " + error.getDefaultMessage()
+						)
+				.toList();
+
+		ApiError apiError = new ApiError(
+				HttpStatus.BAD_REQUEST.value(),
+				HttpStatus.BAD_REQUEST.name(),
+				"VALIDATION_400",
+				"Validation failed",
+				request.getRequestURI(),
+				details
+				);
+
+		return ResponseEntity.badRequest().body(apiError);
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiError> handleHttpMessageNotReadable(
+	        HttpMessageNotReadableException ex,
+	        HttpServletRequest request) {
+
+	    String message = "Invalid request payload";
+	    List<String> details = new ArrayList<>();
+
+	    Throwable cause = ex.getCause();
+
+	    if (cause instanceof InvalidFormatException ife) {
+
+	        if (ife.getTargetType().isEnum()) {
+
+	            String fieldName = ife.getPath().get(0).getFieldName();
+	            Object[] allowedValues = ife.getTargetType().getEnumConstants();
+
+	            message = "Invalid value provided for enum field";
+
+	            details.add(
+	                fieldName + " must be one of " + Arrays.toString(allowedValues)
+	            );
+	        }
+	    }
+
+	    ApiError apiError = new ApiError(
+	            HttpStatus.BAD_REQUEST.value(),
+	            HttpStatus.BAD_REQUEST.getReasonPhrase(),
+	            "INVALID_ENUM_VALUE",
+	            message,
+	            request.getRequestURI(),
+	            details
+	    );
+
+	    return ResponseEntity.badRequest().body(apiError);
+	}
+
+
+	
+	//Product Exception handling
+
+	@ExceptionHandler(ProductException.class)
+	public ResponseEntity<ApiError> handleProductException(
+			ProductException ex,
+			HttpServletRequest request) {
+
+		ProductErrorCode code = ex.getErrorCode();
+
+		ApiError error = new ApiError(
+				code.getStatus().value(),
+				code.getStatus().name(),
+				code.getCode(),
+				ex.getMessage(),
+				request.getRequestURI(),
+				List.of()
+				);
+
+		return ResponseEntity.status(code.getStatus()).body(error);
+	}
+
+
+	@ExceptionHandler(ProductNotFoundException.class)
+	public ResponseEntity<ApiError> handleProductNotFoundException(
+			ProductNotFoundException ex,
+			HttpServletRequest request) {
+
+		ProductErrorCode code = ex.getErrorCode();
+
+		ApiError error = new ApiError(
+				code.getStatus().value(),
+				code.getStatus().name(),
+				code.getCode(),
+				ex.getMessage(),
+				request.getRequestURI(),
+				List.of()
+				);
+
+		return ResponseEntity.status(code.getStatus()).body(error);
+	}
+
+
+	@ExceptionHandler(ProductAlreadyExistsException.class)
+	public ResponseEntity<ApiError> handleProductAlreadyExistsException(
+			ProductAlreadyExistsException ex,
+			HttpServletRequest request) {
+
+		ProductErrorCode code = ex.getErrorCode();
+
+		ApiError error = new ApiError(
+				code.getStatus().value(),
+				code.getStatus().name(),
+				code.getCode(),
+				ex.getMessage(),
+				request.getRequestURI(),
+				List.of()
+				);
+
+		return ResponseEntity.status(code.getStatus()).body(error);
+	}
+
+
+	@ExceptionHandler(ProductOutOfStockException.class)
+	public ResponseEntity<ApiError> handleProductOutOfStockException(
+			ProductOutOfStockException ex,
+			HttpServletRequest request) {
+
+		ProductErrorCode code = ex.getErrorCode();
+
+		ApiError error = new ApiError(
+				code.getStatus().value(),
+				code.getStatus().name(),
+				code.getCode(),
+				ex.getMessage(),
+				request.getRequestURI(),
+				List.of()
+				);
+
+		return ResponseEntity.status(code.getStatus()).body(error);
+	}
+
+
+	//Wishlist Exception handling    
+
+	@ExceptionHandler(WishlistException.class)
+	public ResponseEntity<ApiError> handleWishlistException(
+			WishlistException ex,
+			HttpServletRequest request) {
+
+		WishlistErrorCode code = ex.getErrorCode();
+
+		ApiError error = new ApiError(
+				code.getStatus().value(),
+				code.getStatus().name(),
+				code.getCode(),
+				ex.getMessage(),
+				request.getRequestURI(),
+				List.of()
+				);
+
+		return ResponseEntity.status(code.getStatus()).body(error);
+	}
+
+
+	//General Exception
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ApiError> handleGenericException(
+			Exception ex,
+			HttpServletRequest request) {
+
+		ApiError error = new ApiError(
+				HttpStatus.INTERNAL_SERVER_ERROR.value(),
+				HttpStatus.INTERNAL_SERVER_ERROR.name(),
+				"PROD_500",
+				"Internal server error",
+				request.getRequestURI(),
+				List.of()
+				);
+
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(error);
+	}
+}

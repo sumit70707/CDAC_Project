@@ -23,6 +23,7 @@ public class ProductResponseDto {
     private String description;
     private String imageUrl;
     private BigDecimal price;
+    private Integer ml;
     private Integer qty;
 
     private ProductStatus productStatus;
