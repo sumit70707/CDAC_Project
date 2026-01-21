@@ -66,10 +66,11 @@ public class ProductServiceImpl implements ProductService {
 		if (repo.existsByNameAndPriceAndProductPhValueAndMlAndProductTypeAndSkinType(
 				requestDto.getName(), requestDto.getPrice(), requestDto.getProductPhValue(),
 				requestDto.getMl(), requestDto.getProductType(), requestDto.getSkinType())) {
+			
+			log.warn("Duplicate product found with name: {}",requestDto.getName());
+			
 			throw new ProductAlreadyExistsException(requestDto.getName());
 		}
-
-		log.info("ProductRequestDto",requestDto.toString());
 
 		Product product = modelMapper.map(requestDto, Product.class);
 
@@ -82,6 +83,8 @@ public class ProductServiceImpl implements ProductService {
 		product.setIsActive(true);
 
 		Product savedProduct = repo.save(product);
+		
+		log.info("Product created successfully with id={}", savedProduct.getId());
 
 		return modelMapper.map(savedProduct, ProductResponseDto.class);
 
@@ -131,11 +134,13 @@ public class ProductServiceImpl implements ProductService {
 		Product product = repo.findByIdAndIsActiveTrue(id)
 				.orElseThrow(() -> new ProductNotFoundException(id));
 
-		log.info("ProductRequestDto",requestDto.toString());
+		log.info("ProductRequestDto for update: {}",requestDto.toString());
 
 		modelMapper.map(requestDto, product);
 
 		Product updatedProduct = repo.save(product);
+		
+		log.info("Product updated successfully with id: {}",updatedProduct.getId());
 
 		return modelMapper.map(updatedProduct, ProductResponseDto.class);
 	}
@@ -147,8 +152,10 @@ public class ProductServiceImpl implements ProductService {
 				.orElseThrow(() -> new ProductNotFoundException(id));
 
 		product.setIsActive(false);
-
+		
 		repo.save(product);
+		
+		log.info("Deleted product successfully with id: {} :",product.getId());
 
 	}
 
@@ -159,8 +166,10 @@ public class ProductServiceImpl implements ProductService {
 				.orElseThrow(() -> new ProductNotFoundException(id));
 
 		product.setIsActive(true);
-
+		
 		repo.save(product);
+		
+		log.info("Product activated successfully with id: {}",product.getId());
 	}
 
 	public void decreaseStock(Long id, Integer qty) {

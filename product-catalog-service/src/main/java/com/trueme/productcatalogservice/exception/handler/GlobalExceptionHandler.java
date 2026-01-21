@@ -20,10 +20,14 @@ import com.trueme.productcatalogservice.exception.WishlistException;
 import com.trueme.productcatalogservice.exception.product.ProductAlreadyExistsException;
 import com.trueme.productcatalogservice.exception.product.ProductNotFoundException;
 import com.trueme.productcatalogservice.exception.product.ProductOutOfStockException;
+import com.trueme.productcatalogservice.exception.wishlist.WishlistAlreadyExistsException;
+import com.trueme.productcatalogservice.exception.wishlist.WishlistNotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -35,8 +39,7 @@ public class GlobalExceptionHandler {
 				.getFieldErrors()
 				.stream()
 				.map(error ->
-				error.getField() + ": " + error.getDefaultMessage()
-						)
+				error.getField() + ": " + error.getDefaultMessage())
 				.toList();
 
 		ApiError apiError = new ApiError(
@@ -45,9 +48,10 @@ public class GlobalExceptionHandler {
 				"VALIDATION_400",
 				"Validation failed",
 				request.getRequestURI(),
-				details
-				);
-
+				details);
+		
+		log.warn("Validation failed: {}",ex.getMessage());
+		
 		return ResponseEntity.badRequest().body(apiError);
 	}
 
@@ -71,8 +75,7 @@ public class GlobalExceptionHandler {
 	            message = "Invalid value provided for enum field";
 
 	            details.add(
-	                fieldName + " must be one of " + Arrays.toString(allowedValues)
-	            );
+	                fieldName + " must be one of " + Arrays.toString(allowedValues));
 	        }
 	    }
 
@@ -82,9 +85,10 @@ public class GlobalExceptionHandler {
 	            "INVALID_ENUM_VALUE",
 	            message,
 	            request.getRequestURI(),
-	            details
-	    );
+	            details);
 
+	    log.warn("Invalid value provided for enum field: {}",ex.getMessage());
+	    
 	    return ResponseEntity.badRequest().body(apiError);
 	}
 
@@ -105,9 +109,10 @@ public class GlobalExceptionHandler {
 				code.getCode(),
 				ex.getMessage(),
 				request.getRequestURI(),
-				List.of()
-				);
+				List.of());
 
+		log.error("ProductException: {}",ex.getMessage());
+		
 		return ResponseEntity.status(code.getStatus()).body(error);
 	}
 
@@ -125,9 +130,10 @@ public class GlobalExceptionHandler {
 				code.getCode(),
 				ex.getMessage(),
 				request.getRequestURI(),
-				List.of()
-				);
+				List.of());
 
+		log.error("ProductNotFoundException: {}",ex.getMessage());
+		
 		return ResponseEntity.status(code.getStatus()).body(error);
 	}
 
@@ -145,9 +151,10 @@ public class GlobalExceptionHandler {
 				code.getCode(),
 				ex.getMessage(),
 				request.getRequestURI(),
-				List.of()
-				);
+				List.of());
 
+		log.error("ProductAlreadyExistsException: {}",ex.getMessage());
+		
 		return ResponseEntity.status(code.getStatus()).body(error);
 	}
 
@@ -165,15 +172,56 @@ public class GlobalExceptionHandler {
 				code.getCode(),
 				ex.getMessage(),
 				request.getRequestURI(),
-				List.of()
-				);
+				List.of());
 
+		log.error("ProductOutOfStockException: {}",ex.getMessage());
+		
 		return ResponseEntity.status(code.getStatus()).body(error);
 	}
 
 
 	//Wishlist Exception handling    
 
+	@ExceptionHandler(WishlistAlreadyExistsException.class)
+	public ResponseEntity<ApiError> handleWishlistAlreadyExistsException(
+			WishlistAlreadyExistsException ex,
+			HttpServletRequest request) {
+
+		WishlistErrorCode code = ex.getErrorCode();
+
+		ApiError error = new ApiError(
+				code.getStatus().value(),
+				code.getStatus().name(),
+				code.getCode(),
+				ex.getMessage(),
+				request.getRequestURI(),
+				List.of());
+
+		log.error("WishlistAlreadyExistsException: {}",ex.getMessage());
+		
+		return ResponseEntity.status(code.getStatus()).body(error);
+	}
+	
+	@ExceptionHandler(WishlistNotFoundException.class)
+	public ResponseEntity<ApiError> handleWishlistNotFoundException(
+			WishlistNotFoundException ex,
+			HttpServletRequest request) {
+
+		WishlistErrorCode code = ex.getErrorCode();
+
+		ApiError error = new ApiError(
+				code.getStatus().value(),
+				code.getStatus().name(),
+				code.getCode(),
+				ex.getMessage(),
+				request.getRequestURI(),
+				List.of());
+
+		log.error("WishlistNotFoundException: {}",ex.getMessage());
+		
+		return ResponseEntity.status(code.getStatus()).body(error);
+	}
+	
 	@ExceptionHandler(WishlistException.class)
 	public ResponseEntity<ApiError> handleWishlistException(
 			WishlistException ex,
@@ -187,9 +235,10 @@ public class GlobalExceptionHandler {
 				code.getCode(),
 				ex.getMessage(),
 				request.getRequestURI(),
-				List.of()
-				);
+				List.of());
 
+		log.error("WishlistException: {}",ex.getMessage());
+		
 		return ResponseEntity.status(code.getStatus()).body(error);
 	}
 
@@ -207,9 +256,10 @@ public class GlobalExceptionHandler {
 				"PROD_500",
 				"Internal server error",
 				request.getRequestURI(),
-				List.of()
-				);
+				List.of());
 
+		log.error("Exception: {}",ex.getMessage());
+		
 		return ResponseEntity
 				.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(error);

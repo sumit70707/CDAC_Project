@@ -60,6 +60,7 @@ public class ProductRequestDto {
 	@NotNull(message = "Product type is required")
 	private ProductType productType;
 
+	@NotNull(message = "PhValue is required")
 	@DecimalMin(value = "0.0", message = "pH value must be >= 0.0")
 	@DecimalMax(value = "14.0", message = "pH value must be <= 14.0")
 	@Digits(integer = 2, fraction = 1, message = "pH value must have at most 1 decimal place")

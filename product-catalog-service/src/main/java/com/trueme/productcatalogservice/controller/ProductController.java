@@ -63,7 +63,7 @@ public class ProductController {
 
 	@GetMapping("/name")
 	public ResponseEntity<ProductResponseDto> findProductByName(
-			@RequestParam String name) {
+			 @RequestParam String name) {
 
 		return ResponseEntity.ok(productService.findProductByName(name));
 	}
