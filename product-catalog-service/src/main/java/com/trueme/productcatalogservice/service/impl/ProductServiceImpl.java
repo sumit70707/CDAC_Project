@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -90,11 +93,13 @@ public class ProductServiceImpl implements ProductService {
 
 	}
 
+	
 	@Override
-	public ProductResponseDto getProductById(Long id) {
+	@Cacheable(value = "product", key = "#productId")
+	public ProductResponseDto getProductById(Long productId) {
 
-		Product product= repo.findByIdAndIsActiveTrue(id)
-				.orElseThrow(() -> new ProductNotFoundException(id));
+		Product product= repo.findByIdAndIsActiveTrue(productId)
+				.orElseThrow(() -> new ProductNotFoundException(productId));
 
 		return modelMapper.map(product, ProductResponseDto.class);
 	}
@@ -128,11 +133,12 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 
+	@CacheEvict(value = "product", key = "#productId")
 	@Override
-	public ProductResponseDto updateProduct(Long id, ProductRequestDto requestDto) {
+	public ProductResponseDto updateProduct(Long productId, ProductRequestDto requestDto) {
 
-		Product product = repo.findByIdAndIsActiveTrue(id)
-				.orElseThrow(() -> new ProductNotFoundException(id));
+		Product product = repo.findByIdAndIsActiveTrue(productId)
+				.orElseThrow(() -> new ProductNotFoundException(productId));
 
 		log.info("ProductRequestDto for update: {}",requestDto.toString());
 
@@ -145,11 +151,12 @@ public class ProductServiceImpl implements ProductService {
 		return modelMapper.map(updatedProduct, ProductResponseDto.class);
 	}
 
+	@CacheEvict(value = "product", key = "#productId")
 	@Override
-	public void deleteProduct(Long id) {
+	public void deleteProduct(Long productId) {
 
-		Product product = repo.findByIdAndIsActiveTrue(id)
-				.orElseThrow(() -> new ProductNotFoundException(id));
+		Product product = repo.findByIdAndIsActiveTrue(productId)
+				.orElseThrow(() -> new ProductNotFoundException(productId));
 
 		product.setIsActive(false);
 		
@@ -160,10 +167,10 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public void activateProduct(Long id) {
+	public void activateProduct(Long productId) {
 
-		Product product = repo.findById(id)
-				.orElseThrow(() -> new ProductNotFoundException(id));
+		Product product = repo.findById(productId)
+				.orElseThrow(() -> new ProductNotFoundException(productId));
 
 		product.setIsActive(true);
 		
@@ -172,13 +179,14 @@ public class ProductServiceImpl implements ProductService {
 		log.info("Product activated successfully with id: {}",product.getId());
 	}
 
-	public void decreaseStock(Long id, Integer qty) {
+	@Override
+	public void decreaseStock(Long productId, Integer qty) {
 
-		Product product = repo.findByIdAndIsActiveTrue(id)
-				.orElseThrow(() -> new ProductNotFoundException(id));
+		Product product = repo.findByIdAndIsActiveTrue(productId)
+				.orElseThrow(() -> new ProductNotFoundException(productId));
 
 		if (product.getQty() < qty) {
-			throw new ProductOutOfStockException(id);
+			throw new ProductOutOfStockException(productId);
 		}
 
 		product.setQty(product.getQty() - qty);
@@ -189,13 +197,13 @@ public class ProductServiceImpl implements ProductService {
 
 		repo.save(product);
 
-		log.info("Stock decreased | productId={} | qty={}", id, qty);
+		log.info("Stock decreased | productId={} | qty={}", productId, qty);
 	}
 
-	public void increaseStock(Long id, Integer qty) {
+	public void increaseStock(Long productId, Integer qty) {
 
-		Product product = repo.findByIdAndIsActiveTrue(id)
-				.orElseThrow(() -> new ProductNotFoundException(id));
+		Product product = repo.findByIdAndIsActiveTrue(productId)
+				.orElseThrow(() -> new ProductNotFoundException(productId));
 
 		product.setQty(product.getQty() + qty);
 
@@ -205,7 +213,6 @@ public class ProductServiceImpl implements ProductService {
 
 		repo.save(product);
 
-		log.info("Stock increased | productId={} | qty={}", id, qty);
 	}
 
 

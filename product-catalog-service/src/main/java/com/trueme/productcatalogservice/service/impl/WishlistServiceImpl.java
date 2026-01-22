@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,7 @@ public class WishlistServiceImpl implements WishlistService {
 
 
 	@Override
+	@Cacheable(value = "wishlist", key = "#userId")
 	public List<WishlistResponseDto> getWishlistByUser(Long userId) {
 
 		return repo.findByUserId(userId)
@@ -56,6 +59,7 @@ public class WishlistServiceImpl implements WishlistService {
 
 
 	@Override
+	@CacheEvict(value = "wishlist", key = "#userId")
 	public WishlistResponseDto addToWishlist(Long userId, Long productId) {
 		
 		log.info("Adding product {} to wishlist for user {}", productId, userId);
@@ -105,6 +109,7 @@ public class WishlistServiceImpl implements WishlistService {
 
 
 	@Override
+	@CacheEvict(value = "wishlist", key = "#userId")
 	public void removeFromWishlist(Long userId,Long productId) {
 
 		Wishlist wishlist= repo.findByUserIdAndProduct_Id(userId, productId)

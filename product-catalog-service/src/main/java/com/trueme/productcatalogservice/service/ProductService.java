@@ -15,18 +15,18 @@ public interface ProductService {
 	Page<ProductResponseDto> getAllProducts(int page, int size, 
 			String sortBy, String direction);
 
-	ProductResponseDto getProductById(Long id);
+	ProductResponseDto getProductById(Long productId);
 
 	ProductResponseDto findProductByName(String name);
 
 	Page<ProductResponseDto> findByIsActive(Boolean isActive, int page,
 			int size, String sortBy, String direction);
 
-	ProductResponseDto updateProduct(Long id, ProductRequestDto requestDto);
+	ProductResponseDto updateProduct(Long productId, ProductRequestDto requestDto);
 
-	void deleteProduct(Long id);
+	void deleteProduct(Long productId);
 
-	void activateProduct(Long id);
+	void activateProduct(Long productId);
 
 	Page<ProductResponseDto> filterProducts( ProductStatus status,
 			SkinType skinType,
@@ -40,9 +40,9 @@ public interface ProductService {
 			String sortBy,
 			String direction);
 
-	void decreaseStock(Long id, Integer quantity);
+	void decreaseStock(Long productId, Integer quantity);
 
-	void increaseStock(Long id, Integer quantity);
+	void increaseStock(Long productId, Integer quantity);
 
 
 
