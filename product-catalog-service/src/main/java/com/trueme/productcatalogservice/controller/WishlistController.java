@@ -15,7 +15,7 @@ import com.trueme.productcatalogservice.service.WishlistService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/wishlist")
+@RequestMapping("/api/wishlist")
 @RequiredArgsConstructor
 public class WishlistController {
 
