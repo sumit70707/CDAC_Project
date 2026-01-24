@@ -4,10 +4,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,45 +28,44 @@ public class AddressController {
     private final AddressService addressService;
 
     // TEMP until JWT wiring
-    // TODO: Replace with userId from API Gateway
-    //private static final Long MOCK_USER_ID = 1L;
+    // TODO: Replace with userId from API Gateway==replaced
 
-    @PostMapping("/{id}")
+    @PostMapping
     public ResponseEntity<AddressResponseDto> addAddress(
-    		@PathVariable Long id,
+    		@RequestHeader("X-USER-ID") Long userId,
             @Valid @RequestBody AddressRequestDto dto) {
     	log.info("Address Request comes: {}",dto);
 
         AddressResponseDto response =
-                addressService.addAddress(id, dto);
+                addressService.addAddress(userId, dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<AddressResponseDto> getMyAddress(@PathVariable Long id) {
+    @GetMapping
+    public ResponseEntity<AddressResponseDto> getMyAddress(@RequestHeader("X-USER-ID") Long userId) {
 
         AddressResponseDto response =
-                addressService.getMyAddress(id);
+                addressService.getMyAddress(userId);
 
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping
     public ResponseEntity<AddressResponseDto> updateAddress(
-    		@PathVariable Long id,
+    		@RequestHeader("X-USER-ID") Long userId,
             @Valid @RequestBody AddressRequestDto dto) {
 
         AddressResponseDto response =
-                addressService.updateAddress(id, dto);
+                addressService.updateAddress(userId, dto);
 
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAddress(@PathVariable Long id) {
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAddress(@RequestHeader("X-USER-ID") Long userId) {
 
-        addressService.deleteAddress(id);
+        addressService.deleteAddress(userId);
 
         return ResponseEntity.noContent().build(); 
     }
