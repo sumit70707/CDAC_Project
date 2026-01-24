@@ -3,6 +3,7 @@ package com.trueme.productcatalogservice.controller;
 import java.math.BigDecimal;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,9 +41,7 @@ public class ProductController {
 			@RequestParam(defaultValue = "createdAt") String sortBy,
 			@RequestParam(defaultValue = "desc") String direction) {
 
-		return ResponseEntity.ok(
-				productService.getAllProducts(page, size,sortBy, direction)
-				);
+		return ResponseEntity.ok(productService.getAllProducts(page, size,sortBy, direction));
 	}
 
 
@@ -51,7 +50,7 @@ public class ProductController {
 			@Valid @RequestBody ProductRequestDto request) {
 
 		ProductResponseDto response = productService.createProduct(request);
-		return ResponseEntity.ok(response);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	@GetMapping("/{id}")
@@ -63,7 +62,7 @@ public class ProductController {
 
 	@GetMapping("/name")
 	public ResponseEntity<ProductResponseDto> findProductByName(
-			 @RequestParam String name) {
+			@RequestParam String name) {
 
 		return ResponseEntity.ok(productService.findProductByName(name));
 	}

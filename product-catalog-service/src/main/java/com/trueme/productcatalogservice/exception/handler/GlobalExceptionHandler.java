@@ -74,8 +74,7 @@ public class GlobalExceptionHandler {
 
 	            message = "Invalid value provided for enum field";
 
-	            details.add(
-	                fieldName + " must be one of " + Arrays.toString(allowedValues));
+	            details.add(fieldName + " must be one of " + Arrays.toString(allowedValues));
 	        }
 	    }
 

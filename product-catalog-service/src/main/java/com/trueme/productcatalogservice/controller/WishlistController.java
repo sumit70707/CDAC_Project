@@ -36,8 +36,7 @@ public class WishlistController {
 
         WishlistResponseDto responseDto = wishlistService.addToWishlist(userId, productId);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(responseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 	
 	@DeleteMapping("/{userId}/{productId}")

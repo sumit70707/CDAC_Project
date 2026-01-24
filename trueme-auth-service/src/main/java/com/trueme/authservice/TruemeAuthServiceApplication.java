@@ -1,4 +1,4 @@
-package com.trueme.productcatalogservice;
+package com.trueme.authservice;
 
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
@@ -8,12 +8,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-public class ProductCatalogServiceApplication {
+public class TruemeAuthServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProductCatalogServiceApplication.class, args);
+		SpringApplication.run(TruemeAuthServiceApplication.class, args);
 	}
-
+	
 	@Bean 
 	ModelMapper modelMapper() {
 		ModelMapper mapper = new ModelMapper();
@@ -22,4 +22,5 @@ public class ProductCatalogServiceApplication {
 				.setMatchingStrategy(MatchingStrategies.STRICT);
 		return mapper;
 	}
+
 }
