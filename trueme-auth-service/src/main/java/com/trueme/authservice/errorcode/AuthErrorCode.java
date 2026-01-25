@@ -20,7 +20,12 @@ public enum AuthErrorCode {
             HttpStatus.CONFLICT,"Address already exists for user"),
 
     AUTH_403_ADDRESS_ACCESS_DENIED(
-            HttpStatus.FORBIDDEN,"You are not allowed to access this address");
+            HttpStatus.FORBIDDEN,"You are not allowed to access this address"),
+    
+    AUTH_404_USER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,"User not found"), 
+    AUTH_403_OPERATION_NOT_ALLOWED(
+    		HttpStatus.FORBIDDEN,"You are not allowed to access");
 
     private final HttpStatus status;
     private final String defaultMessage;

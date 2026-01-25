@@ -40,8 +40,8 @@ public class ProductServiceImpl implements ProductService {
 
 	private final ModelMapper modelMapper;
 
-	@Value("${product.default.seller-id}")
-	private Long defaultSellerId;
+//	@Value("${product.default.seller-id}")
+//	private Long defaultSellerId;
 
 	@Override
 	public Page<ProductResponseDto> getAllProducts(
@@ -63,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
 
 
 	@Override
-	public ProductResponseDto createProduct(ProductRequestDto requestDto) {
+	public ProductResponseDto createProduct(ProductRequestDto requestDto,Long sellerId) {
 
 		if (repo.existsByNameAndPriceAndProductPhValueAndMlAndProductTypeAndSkinType(
 				requestDto.getName(), requestDto.getPrice(), requestDto.getProductPhValue(),
@@ -80,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
 			product.setProductStatus(ProductStatus.AVAILABLE);
 		}
 
-		product.setSellerId(defaultSellerId);
+		product.setSellerId(sellerId);
 
 		product.setIsActive(true);
 

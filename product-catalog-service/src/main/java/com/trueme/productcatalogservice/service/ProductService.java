@@ -10,7 +10,7 @@ import com.trueme.productcatalogservice.entity.enums.SkinType;
 
 public interface ProductService {
 
-	ProductResponseDto createProduct(ProductRequestDto requestDto);
+	ProductResponseDto createProduct(ProductRequestDto requestDto,Long sellerId);
 
 	Page<ProductResponseDto> getAllProducts(int page, int size, 
 			String sortBy, String direction);

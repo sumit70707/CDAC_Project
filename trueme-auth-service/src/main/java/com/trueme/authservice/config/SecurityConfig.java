@@ -2,6 +2,7 @@ package com.trueme.authservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,12 +37,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // Auth APIs
-                .requestMatchers("/auth/**").permitAll()
-                // Address APIs (TEMP until JWT wiring)
-                .requestMatchers("/user/**").permitAll()
-
-                // Swagger
+            		 // 🔓 Public auth APIs ONLY
+                    .requestMatchers(
+                        "/auth/login",
+                        "/auth/register",
+                        "/auth/forgot-password"
+                    ).permitAll()
                 .requestMatchers(
                     "/swagger-ui.html",
                     "/swagger-ui/**",
@@ -51,8 +52,10 @@ public class SecurityConfig {
                 // Actuator
                 .requestMatchers("/actuator/**").permitAll()
 
-                .anyRequest().authenticated()
-            );
+                .anyRequest().authenticated())
+            .oauth2ResourceServer(oauth2 ->
+            oauth2.jwt(Customizer.withDefaults())
+        );
 
         return http.build();
     }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trueme.authservice.dto.AuthResponseDto;
+import com.trueme.authservice.dto.ForgotPasswordRequestDto;
 import com.trueme.authservice.dto.LoginRequestDto;
 import com.trueme.authservice.dto.RegisterRequestDto;
 import com.trueme.authservice.service.AuthService;
@@ -26,7 +27,6 @@ public class AuthController {
     public ResponseEntity<AuthResponseDto> register(
             @Valid @RequestBody RegisterRequestDto requestDto) {
 
-
         AuthResponseDto response = authService.register(requestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -40,4 +40,22 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
+    
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDto dto) {
+    	
+        String message=authService.forgotPassword(dto);
+        
+        return ResponseEntity.ok(message);
+    }
+
+    
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+    	
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
+    
 }

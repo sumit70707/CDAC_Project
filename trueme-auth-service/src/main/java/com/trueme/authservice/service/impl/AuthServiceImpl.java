@@ -1,6 +1,7 @@
 package com.trueme.authservice.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trueme.authservice.dto.AuthResponseDto;
+import com.trueme.authservice.dto.ForgotPasswordRequestDto;
 import com.trueme.authservice.dto.LoginRequestDto;
 import com.trueme.authservice.dto.RegisterRequestDto;
 import com.trueme.authservice.dto.UserResponseDto;
@@ -100,5 +102,31 @@ public class AuthServiceImpl implements AuthService {
                 .user(userResponseDto)
                 .build();
     }
+
+//	@Override
+//	public List<UserResponseDto> getAllUsers() {
+//		
+//		return userRepository.findAll()
+//	            .stream()
+//	            .map(user -> modelMapper.map(user, UserResponseDto.class))
+//	            .toList();
+//	}
+
+	@Override
+	public String forgotPassword(ForgotPasswordRequestDto dto) {
+		
+		User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() ->
+                        new AuthException(AuthErrorCode.AUTH_404_USER_NOT_FOUND));
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+
+        userRepository.save(user);
+        
+        log.info("Password changed for User: {}",dto);
+        
+        return "Password changed successfully for user: " + dto.getEmail();
+		
+	}
 
 }

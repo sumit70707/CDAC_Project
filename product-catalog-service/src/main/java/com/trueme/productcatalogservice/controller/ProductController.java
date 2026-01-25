@@ -5,6 +5,9 @@ import java.math.BigDecimal;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -35,9 +38,10 @@ public class ProductController {
 	private final ProductService productService;
 
 	@GetMapping
+	@PreAuthorize("hasAnyRole('CUSTOMER','SELLER','ADMIN')")
 	public ResponseEntity<Page<ProductResponseDto>> getAllProducts(
 			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "2") int size,
+			@RequestParam(defaultValue = "5") int size,
 			@RequestParam(defaultValue = "createdAt") String sortBy,
 			@RequestParam(defaultValue = "desc") String direction) {
 
@@ -46,14 +50,20 @@ public class ProductController {
 
 
 	@PostMapping
+	@PreAuthorize("hasRole('SELLER')")
 	public ResponseEntity<ProductResponseDto> createProduct(
-			@Valid @RequestBody ProductRequestDto request) {
+			@Valid @RequestBody ProductRequestDto request,
+			@AuthenticationPrincipal Jwt jwt) {
+		
+		Long sellerId = jwt.getClaim("userId");
 
-		ProductResponseDto response = productService.createProduct(request);
+		ProductResponseDto response = productService.createProduct(request,sellerId);
+		
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyRole('CUSTOMER','SELLER','ADMIN')")
 	public ResponseEntity<ProductResponseDto> getProductById(
 			@PathVariable Long id) {
 
@@ -61,6 +71,7 @@ public class ProductController {
 	}
 
 	@GetMapping("/name")
+	@PreAuthorize("hasAnyRole('CUSTOMER','SELLER','ADMIN')")
 	public ResponseEntity<ProductResponseDto> findProductByName(
 			@RequestParam String name) {
 
@@ -69,6 +80,7 @@ public class ProductController {
 
 
 	@GetMapping("/status")
+	@PreAuthorize("hasAnyRole('CUSTOMER','SELLER','ADMIN')")
 	public ResponseEntity<Page<ProductResponseDto>> findByIsActive(
 			@RequestParam Boolean isActive,
 			@RequestParam(defaultValue = "0") int page,
@@ -83,6 +95,7 @@ public class ProductController {
 
 
 	@PutMapping("/{id}")
+	@PreAuthorize("hasRole('SELLER')")
 	public ResponseEntity<ProductResponseDto> updateProduct(
 			@PathVariable Long id,
 			@Valid @RequestBody ProductRequestDto requestDto) {
@@ -91,6 +104,7 @@ public class ProductController {
 	}
 
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasRole('SELLER')")
 	public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
 
 		productService.deleteProduct(id);
@@ -98,6 +112,7 @@ public class ProductController {
 	}
 
 	@PatchMapping("/{id}/activate")
+	@PreAuthorize("hasRole('SELLER')")
 	public ResponseEntity<Void> activateProduct(@PathVariable Long id) {
 
 		productService.activateProduct(id);
@@ -105,6 +120,7 @@ public class ProductController {
 	}
 
 	@PutMapping("/{id}/stock/decrease")
+	@PreAuthorize("hasAnyRole('SELLER','ORDER_SERVICE')")
 	public ResponseEntity<Void> decreaseStock(
 			@PathVariable Long id,
 			@RequestBody StockUpdateRequest request) {
@@ -114,6 +130,7 @@ public class ProductController {
 	}
 
 	@PutMapping("/{id}/stock/increase")
+	@PreAuthorize("hasAnyRole('SELLER','ORDER_SERVICE')")
 	public ResponseEntity<Void> increaseStock(
 			@PathVariable Long id,
 			@RequestBody StockUpdateRequest request) {
@@ -123,6 +140,7 @@ public class ProductController {
 	}
 
 	@GetMapping("/filter")
+	@PreAuthorize("hasAnyRole('CUSTOMER','SELLER','ADMIN')")
 	public ResponseEntity<Page<ProductResponseDto>> filterProducts(
 			@RequestParam(required = false) ProductStatus productStatus,
 			@RequestParam(required = false) SkinType skinType,

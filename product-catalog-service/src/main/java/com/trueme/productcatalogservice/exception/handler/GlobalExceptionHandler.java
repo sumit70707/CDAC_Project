@@ -1,5 +1,6 @@
 package com.trueme.productcatalogservice.exception.handler;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,12 +8,15 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.trueme.productcatalogservice.dto.ApiError;
+import com.trueme.productcatalogservice.dto.ApiResponse;
 import com.trueme.productcatalogservice.errocode.ProductErrorCode;
 import com.trueme.productcatalogservice.errocode.WishlistErrorCode;
 import com.trueme.productcatalogservice.exception.ProductException;
@@ -263,4 +267,16 @@ public class GlobalExceptionHandler {
 				.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(error);
 	}
+	
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ApiResponse> handleAccessDenied(AccessDeniedException ex) {
+
+		ApiResponse response = new ApiResponse(
+	            "Access is denied",
+	            HttpStatus.FORBIDDEN.name()
+	    );
+
+	    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+	}
+
 }
