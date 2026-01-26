@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.trueme.orderservice.dto.ApiResponse;
+import com.trueme.orderservice.errorcode.ProductErrorCode;
 import com.trueme.orderservice.exception.CartException;
 import com.trueme.orderservice.exception.OrderException;
+import com.trueme.orderservice.exception.ProductException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,6 +52,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(
                 response,
                 ex.getErrorCode().getStatus());
+    }
+    
+    //product from catalog service
+    @ExceptionHandler(ProductException.class)
+    public ResponseEntity<ApiResponse> handleProductException(ProductException ex) {
+
+        ProductErrorCode code = ex.getErrorCode();
+
+        log.error("Product exception occurred: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(code.getStatus())
+                .body(new ApiResponse(
+                        ex.getMessage(),
+                        code.getCode()
+                ));
     }
 
     // ================= FALLBACK =================

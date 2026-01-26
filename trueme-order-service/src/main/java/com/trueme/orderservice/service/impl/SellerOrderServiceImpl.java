@@ -3,6 +3,10 @@ package com.trueme.orderservice.service.impl;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,28 +36,35 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<SellerOrderItemResponseDto> getSellerOrders(Long sellerId, FulfillmentStatus status) {
+	public Page<SellerOrderItemResponseDto> getSellerOrders(
+	        Long sellerId,
+	        FulfillmentStatus status,
+	        int page,
+	        int size) {
 
-		log.info("Fetching seller orders for sellerId={}, status={}", sellerId, status);
+	    log.info("Fetching seller orders sellerId={}, status={}, page={}, size={}",
+	            sellerId, status, page, size);
 
-		return orderItemRepository.findBySellerId(sellerId)
-				.stream()
-				.filter(item ->
-				item.getOrder().getPaymentStatus() == PaymentStatus.COMPLETED)
-				.filter(item ->
-                status == null || item.getFulfillmentStatus() == status)
-				.map(item -> SellerOrderItemResponseDto.builder()
-						.orderItemId(item.getId())
-						.orderId(item.getOrder().getId())
-						.orderNumber(item.getOrder().getOrderNumber())
-						.productId(item.getProductId())
-						.productName(item.getProductName())
-						.quantity(item.getQuantity())
-						.subtotal(item.getSubtotal())
-						.fulfillmentStatus(item.getFulfillmentStatus())
-						.build())
-				.toList();
+	    Pageable pageable = PageRequest.of(
+	            page,
+	            size,
+	            Sort.by(Sort.Direction.DESC, "createdAt") //ASC by created time
+	    );
+
+	    return orderItemRepository
+	            .findSellerOrders(sellerId, status, pageable)
+	            .map(item -> SellerOrderItemResponseDto.builder()
+	                    .orderItemId(item.getId())
+	                    .orderId(item.getOrder().getId())
+	                    .orderNumber(item.getOrder().getOrderNumber())
+	                    .productId(item.getProductId())
+	                    .productName(item.getProductName())
+	                    .quantity(item.getQuantity())
+	                    .subtotal(item.getSubtotal())
+	                    .fulfillmentStatus(item.getFulfillmentStatus())
+	                    .build());
 	}
+
 
 	@Override
 	public ApiResponse updateFulfillmentStatus(

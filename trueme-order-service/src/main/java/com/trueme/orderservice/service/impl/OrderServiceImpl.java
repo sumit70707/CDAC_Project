@@ -3,10 +3,13 @@ package com.trueme.orderservice.service.impl;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.trueme.orderservice.dto.ApiResponse;
 import com.trueme.orderservice.dto.ApiResponseWithData;
 import com.trueme.orderservice.dto.OrderItemResponseDto;
 import com.trueme.orderservice.dto.OrderResponseDto;
@@ -29,23 +32,31 @@ public class OrderServiceImpl implements OrderService {
 	private final OrderItemRepository orderItemRepository;
 	private final ModelMapper modelMapper;
 
-	@Override
-	public ApiResponseWithData<List<OrderResponseDto>> getMyOrders(Long userId) {
+	public ApiResponseWithData<Page<OrderResponseDto>> getMyOrders(
+	        Long userId,
+	        int page,
+	        int size) {
 
-		log.info("Fetching orders for userId={}", userId);
+	    log.info("Fetching orders for userId={}, page={}, size={}",
+	            userId, page, size);
 
-		List<OrderResponseDto> orders = orderRepository.findByUserId(userId)
-				.stream()
-				.map(order -> mapToOrderResponse(order, true))
-				.toList();
+	    Pageable pageable = PageRequest.of(
+	            page,
+	            size,
+	            Sort.by(Sort.Direction.DESC, "createdAt")
+	    );
 
-		if (orders.isEmpty()) {
-			return new ApiResponseWithData<>(
-					"No orders found","SUCCESS",orders);
-		}
+	    Page<OrderResponseDto> ordersPage = orderRepository
+	            .findByUserId(userId, pageable)
+	            .map(order -> mapToOrderResponse(order, true));
 
-		return new ApiResponseWithData<>(
-				"Orders fetched successfully","SUCCESS",orders);
+	    if (ordersPage.isEmpty()) {
+	        return new ApiResponseWithData<>(
+	                "No orders found","SUCCESS",ordersPage);
+	    }
+
+	    return new ApiResponseWithData<>(
+	            "Orders fetched successfully","SUCCESS",ordersPage);
 	}
 
 	@Override

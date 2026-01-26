@@ -7,51 +7,51 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.config.Customizer;
 
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	@Bean
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                // Swagger (optional)
-                .requestMatchers(
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
+		http
+		.csrf(csrf -> csrf.disable())
+		.authorizeHttpRequests(auth -> auth
+				// Swagger (optional)
+				.requestMatchers(
+						"/swagger-ui/**",
+						"/v3/api-docs/**"
+						).permitAll()
+				.requestMatchers("/internal/**").permitAll()
 
-                // Everything else requires JWT
-                .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 ->
-                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter()))
-            );
+				// Everything else requires JWT
+				.anyRequest().authenticated()
+				)
+		.oauth2ResourceServer(oauth2 ->
+		oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter()))
+				);
 
-        return http.build();
-    }
-    
-    @Bean
-    JwtAuthenticationConverter jwtAuthConverter() {
+		return http.build();
+	}
 
-        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
-                new JwtGrantedAuthoritiesConverter();
+	@Bean
+	JwtAuthenticationConverter jwtAuthConverter() {
 
-        // 🔑 IMPORTANT: match your JWT claim
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("role");
-        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+		JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
+				new JwtGrantedAuthoritiesConverter();
 
-        JwtAuthenticationConverter authenticationConverter =
-                new JwtAuthenticationConverter();
+		// 🔑 IMPORTANT: match your JWT claim
+		grantedAuthoritiesConverter.setAuthoritiesClaimName("role");
+		grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
 
-        authenticationConverter.setJwtGrantedAuthoritiesConverter(
-                grantedAuthoritiesConverter
-        );
+		JwtAuthenticationConverter authenticationConverter =
+				new JwtAuthenticationConverter();
 
-        return authenticationConverter;
-    }
+		authenticationConverter.setJwtGrantedAuthoritiesConverter(
+				grantedAuthoritiesConverter
+				);
+
+		return authenticationConverter;
+	}
 }

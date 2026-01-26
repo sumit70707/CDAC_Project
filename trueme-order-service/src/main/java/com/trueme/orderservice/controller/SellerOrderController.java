@@ -1,8 +1,10 @@
 package com.trueme.orderservice.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,36 +23,46 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/seller/orders")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('SELLER')")
 public class SellerOrderController {
 
     private final SellerOrderService sellerOrderService;
 
     @GetMapping
-    public ResponseEntity<List<SellerOrderItemResponseDto>> getSellerOrders(
-            @RequestParam Long sellerId,
-            @RequestParam(required = false) FulfillmentStatus status) {
+    public ResponseEntity<Page<SellerOrderItemResponseDto>> getSellerOrders(
+    		@AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) FulfillmentStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
     	
+    	Long sellerId = jwt.getClaim("userId");
+
         return ResponseEntity.ok(
-                sellerOrderService.getSellerOrders(sellerId, status));
+                sellerOrderService.getSellerOrders(sellerId, status, page, size));
     }
+
 
 
     @PutMapping("/{orderItemId}/status")
     public ResponseEntity<ApiResponse> updateStatus(
-            @RequestParam Long sellerId,
+    		 @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long orderItemId,
             @RequestParam FulfillmentStatus status) {
+    	
+    	Long sellerId = jwt.getClaim("userId");
+    	
         return ResponseEntity.ok(sellerOrderService.updateFulfillmentStatus(
                         sellerId, orderItemId, status));
     }
     
     @GetMapping("/summary")
     public ResponseEntity<SellerOrderSummaryDto> getSellerSummary(
-            @RequestParam Long sellerId
-    ) {
+    		@AuthenticationPrincipal Jwt jwt) {
+    	
+    	Long sellerId = jwt.getClaim("userId");
+    	
         return ResponseEntity.ok(
-                sellerOrderService.getSellerOrderSummary(sellerId)
-        );
+                sellerOrderService.getSellerOrderSummary(sellerId));
     }
 
 }

@@ -1,7 +1,10 @@
 package com.trueme.productcatalogservice.service;
 
 import java.math.BigDecimal;
+
 import org.springframework.data.domain.Page;
+
+import com.trueme.productcatalogservice.dto.InternalProductDto;
 import com.trueme.productcatalogservice.dto.ProductRequestDto;
 import com.trueme.productcatalogservice.dto.ProductResponseDto;
 import com.trueme.productcatalogservice.entity.enums.ProductStatus;
@@ -43,6 +46,8 @@ public interface ProductService {
 	void decreaseStock(Long productId, Integer quantity);
 
 	void increaseStock(Long productId, Integer quantity);
+	
+	public InternalProductDto getInternalProduct(Long productId);
 
 
 

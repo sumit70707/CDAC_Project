@@ -13,50 +13,51 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
-//    @Bean
-//    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//
-//        http
-//            .csrf(csrf -> csrf.disable())
-//            .authorizeHttpRequests(auth -> auth
-//                .requestMatchers("/auth/**", "/actuator/**").permitAll()
-//                .anyRequest().authenticated()
-//            );
-//
-//        return http.build();
-//    }
-    
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	//    @Bean
+	//    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	//
+	//        http
+	//            .csrf(csrf -> csrf.disable())
+	//            .authorizeHttpRequests(auth -> auth
+	//                .requestMatchers("/auth/**", "/actuator/**").permitAll()
+	//                .anyRequest().authenticated()
+	//            );
+	//
+	//        return http.build();
+	//    }
 
-        http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-            		 // 🔓 Public auth APIs ONLY
-                    .requestMatchers(
-                        "/auth/login",
-                        "/auth/register",
-                        "/auth/forgot-password"
-                    ).permitAll()
-                .requestMatchers(
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
+	@Bean
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-                // Actuator
-                .requestMatchers("/actuator/**").permitAll()
+		http
+		.csrf(csrf -> csrf.disable())
+		.authorizeHttpRequests(auth -> auth
+				// Public auth APIs ONLY
+				.requestMatchers(
+						"/auth/login",
+						"/auth/register",
+						"/auth/forgot-password"
+						).permitAll()
+				.requestMatchers(
+						"/swagger-ui.html",
+						"/swagger-ui/**",
+						"/v3/api-docs/**"
+						).permitAll()
+				.requestMatchers("/internal/**").permitAll()
 
-                .anyRequest().authenticated())
-            .oauth2ResourceServer(oauth2 ->
-            oauth2.jwt(Customizer.withDefaults())
-        );
+				// Actuator
+				.requestMatchers("/actuator/**").permitAll()
 
-        return http.build();
-    }
+				.anyRequest().authenticated())
+		.oauth2ResourceServer(oauth2 ->
+		oauth2.jwt(Customizer.withDefaults())
+				);
+
+		return http.build();
+	}
 }

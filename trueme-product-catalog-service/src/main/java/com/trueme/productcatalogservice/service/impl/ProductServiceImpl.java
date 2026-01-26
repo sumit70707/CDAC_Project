@@ -3,7 +3,6 @@ package com.trueme.productcatalogservice.service.impl;
 import java.math.BigDecimal;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -14,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.trueme.productcatalogservice.dto.InternalProductDto;
 import com.trueme.productcatalogservice.dto.ProductRequestDto;
 import com.trueme.productcatalogservice.dto.ProductResponseDto;
 import com.trueme.productcatalogservice.entity.Product;
@@ -247,6 +247,24 @@ public class ProductServiceImpl implements ProductService {
 				.map(product ->
 				modelMapper.map(product, ProductResponseDto.class));
 	}
+
+
+	@Override
+		public InternalProductDto getInternalProduct(Long productId) {
+
+		    Product product = repo.findById(productId)
+		            .orElseThrow(() -> new ProductNotFoundException(productId));
+
+		    return InternalProductDto.builder()
+		            .id(product.getId())
+		            .name(product.getName())
+		            .imageUrl(product.getImageUrl())
+		            .price(product.getPrice())
+		            .qty(product.getQty())
+		            .productStatus(product.getProductStatus())
+		            .sellerId(product.getSellerId())
+		            .build();
+		}
 
 
 }
