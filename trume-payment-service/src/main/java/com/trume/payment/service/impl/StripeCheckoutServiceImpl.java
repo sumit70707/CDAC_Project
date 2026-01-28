@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
-import com.trume.payment.dto.StripeCheckoutResponse;
+import com.trume.payment.dto.StripeCheckoutResponseDto;
 import com.trume.payment.exception.payment.StripeCheckoutException;
 import com.trume.payment.service.StripeCheckoutService;
 
@@ -25,7 +25,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
 	private String cancelUrl;
 
 	@Override
-	public StripeCheckoutResponse createCheckoutSession(
+	public StripeCheckoutResponseDto createCheckoutSession(
 			Long orderId,
 			BigDecimal amount,
 			String currency) {
@@ -72,7 +72,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
 					"Stripe Checkout Session created | sessionId={}",
 					session.getId());
 
-			return new StripeCheckoutResponse(session.getId(),session.getUrl());
+			return new StripeCheckoutResponseDto(session.getId(),session.getUrl());
 
 		} catch (StripeException e) {
 			log.error(

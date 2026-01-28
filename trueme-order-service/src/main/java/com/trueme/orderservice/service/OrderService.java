@@ -1,11 +1,10 @@
 package com.trueme.orderservice.service;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 
 import com.trueme.orderservice.dto.ApiResponseWithData;
 import com.trueme.orderservice.dto.OrderResponseDto;
+import com.trueme.orderservice.entity.enums.PaymentStatusFromPaymentService;
 
 public interface OrderService {
 
@@ -17,4 +16,7 @@ public interface OrderService {
 
 
     OrderResponseDto getOrderById(Long userId, Long orderId);
+    
+    void updatePaymentStatusByPaymentService(Long orderId,Long paymentId,
+    		PaymentStatusFromPaymentService paymentStatusFromPaymentService);
 }

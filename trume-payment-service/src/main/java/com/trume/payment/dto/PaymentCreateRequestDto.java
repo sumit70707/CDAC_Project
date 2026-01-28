@@ -4,13 +4,14 @@ import java.math.BigDecimal;
 
 import jakarta.persistence.PrePersist;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
-@ToString
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PaymentCreateRequestDto {
 
     @NotNull
@@ -18,9 +19,6 @@ public class PaymentCreateRequestDto {
 
     @NotNull
     private BigDecimal amount;
-
-    @NotNull
-    private String idempotencyKey;
 
     private String currency;
     

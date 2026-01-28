@@ -9,9 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trueme.orderservice.client.AddressClient;
+import com.trueme.orderservice.client.PaymentClient;
 import com.trueme.orderservice.client.ProductClient;
 import com.trueme.orderservice.dto.AddressResponseDto;
 import com.trueme.orderservice.dto.ApiResponse;
+import com.trueme.orderservice.dto.PaymentCheckoutRequest;
+import com.trueme.orderservice.dto.PaymentCheckoutResponseDto;
 import com.trueme.orderservice.dto.ProductResponseDto;
 import com.trueme.orderservice.dto.ReduceStockRequest;
 import com.trueme.orderservice.entity.Cart;
@@ -48,6 +51,8 @@ public class CheckoutServiceImpl implements CheckoutService {
 	private final ProductClient productClient;
 	private final AddressClient addressClient;
 	private final ObjectMapper objectMapper;
+	private Long addressId;
+	private final PaymentClient paymentClient;
 
 
 	@Override
@@ -70,8 +75,9 @@ public class CheckoutServiceImpl implements CheckoutService {
 		Order order = Order.builder()
 				.orderNumber(UUID.randomUUID().toString())
 				.userId(userId)
-				.shippingAddressSnapshot(buildAddressSnapshot(userId)) // dummy for now
-				.paymentStatus(PaymentStatus.COMPLETED)                     // dummy for now
+				.shippingAddressSnapshot(buildAddressSnapshot(userId)) 
+				.shippingAddressId(addressId)
+				.paymentStatus(PaymentStatus.PENDING)                    
 				.orderStatus(OrderStatus.CREATED)
 				.currency("INR")
 				.totalAmount(BigDecimal.ZERO)
@@ -132,12 +138,24 @@ public class CheckoutServiceImpl implements CheckoutService {
 		cart.setStatus(CartStatus.CHECKED_OUT);   // lifecycle info
 		cartRepository.save(cart);
 
-		log.info("Checkout completed successfully for userId={}, orderId={}",
-				userId, order.getId());
+		// 6 call paymey service
+		PaymentCheckoutResponseDto paymentResponse =
+	            paymentClient.createCheckout(
+	                    PaymentCheckoutRequest.builder()
+	                            .orderId(order.getId())
+	                            .userId(userId)
+	                            .amount(orderTotal)
+	                            .currency("INR")
+	                            .build());
 
-		return new ApiResponse(
-				"Order placed successfully. OrderNumber: " + order.getOrderNumber(),
-				"SUCCESS");
+	    log.info(
+	        "Checkout initiated for orderId={}, redirecting to Stripe",
+	        order.getId());
+
+	    // 7️ retrumn paymeny url for frontend 
+	    return new ApiResponse(
+	            paymentResponse.getCheckoutUrl(),
+	            "PAYMENT_URL");
 	}
 	
 	private String buildAddressSnapshot(Long userId) {
@@ -145,6 +163,8 @@ public class CheckoutServiceImpl implements CheckoutService {
 	    try {
 	        AddressResponseDto address =
 	                addressClient.getDefaultAddress(userId);
+	        
+	        addressId =address.getId();
 
 	        return objectMapper.writeValueAsString(address);
 

@@ -14,6 +14,8 @@ import com.trueme.orderservice.dto.ApiResponseWithData;
 import com.trueme.orderservice.dto.OrderItemResponseDto;
 import com.trueme.orderservice.dto.OrderResponseDto;
 import com.trueme.orderservice.entity.Order;
+import com.trueme.orderservice.entity.enums.PaymentStatus;
+import com.trueme.orderservice.entity.enums.PaymentStatusFromPaymentService;
 import com.trueme.orderservice.exception.order.OrderNotFoundException;
 import com.trueme.orderservice.repository.OrderItemRepository;
 import com.trueme.orderservice.repository.OrderRepository;
@@ -25,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class OrderServiceImpl implements OrderService {
 
 	private final OrderRepository orderRepository;
@@ -100,4 +102,51 @@ public class OrderServiceImpl implements OrderService {
 
 		return response;
 	}
+
+	@Transactional
+	public void updatePaymentStatusByPaymentService(
+	        Long orderId,
+	        Long paymentId,
+	        PaymentStatusFromPaymentService paymentStatusFromPaymentService) {
+
+	    // 1️ Fetch order
+	    Order order = orderRepository.findById(orderId)
+	            .orElseThrow(() ->new OrderNotFoundException(orderId));
+
+	    // 2️ Idempotency guard
+	    // If payment is already completed, ignore duplicate webhook calls
+	    if (order.getPaymentStatus() == PaymentStatus.COMPLETED) {
+	        log.warn(
+	            "Ignoring payment update. Order payment already completed | orderId={}",
+	            orderId);
+	        return;
+	    }
+
+	    // 3️ Map payment-service status → order-service payment status
+	    PaymentStatus paymentStatus =
+	            mapFromPaymentServiceStatus(paymentStatusFromPaymentService);
+
+	    // 4️ Update ONLY payment status
+	    order.setPaymentStatus(paymentStatus);
+	    
+	    //update paymnet ID also
+	    order.setPaymentId(paymentId);
+
+	    // 5️ save changes
+	    orderRepository.save(order);
+	}
+
+	
+	private PaymentStatus mapFromPaymentServiceStatus(
+	        PaymentStatusFromPaymentService status) {
+
+	    return switch (status) {
+	        case COMPLETED -> PaymentStatus.COMPLETED;
+	        case FAILED -> PaymentStatus.FAILED;
+	        case REFUNDED -> PaymentStatus.REFUNDED;
+	        default -> PaymentStatus.PENDING;
+	    };
+	}
+
+
 }

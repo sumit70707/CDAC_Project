@@ -6,13 +6,16 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.trume.payment.client.OrderClient;
+import com.trume.payment.dto.OrderPaymentStatusUpdateRequestDto;
 import com.trume.payment.dto.PaymentCreateRequestDto;
 import com.trume.payment.dto.PaymentResponseDto;
 import com.trume.payment.dto.PaymentStatusUpdateRequestDto;
-import com.trume.payment.dto.StripeCheckoutResponse;
+import com.trume.payment.dto.StripeCheckoutResponseDto;
 import com.trume.payment.entity.Payment;
 import com.trume.payment.entity.enums.PaymentMethod;
 import com.trume.payment.entity.enums.PaymentStatus;
+import com.trume.payment.entity.enums.PaymentStatusFromPaymentService;
 import com.trume.payment.exception.payment.DuplicatePaymentException;
 import com.trume.payment.exception.payment.InvalidPaymentStatusException;
 import com.trume.payment.exception.payment.InvalidPaymentStatusTransitionException;
@@ -33,6 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
 	private final PaymentRepository paymentRepository;
 	private final StripeCheckoutService stripeCheckoutService;
 	private final ModelMapper modelMapper;
+	private final OrderClient orderClient;
 
 	@Override
 	public PaymentResponseDto createPayment(PaymentCreateRequestDto request) {
@@ -44,16 +48,12 @@ public class PaymentServiceImpl implements PaymentService {
 		}
 
 		// 1️ Generate idempotency key if missing
-		String idempotencyKey = request.getIdempotencyKey();
-		if (idempotencyKey == null || idempotencyKey.isBlank()) {
-			idempotencyKey = "payment-" + request.getOrderId();
-			log.warn(
-					"Idempotency key not provided, generated default={}",
-					idempotencyKey);
-		}
+		String idempotencyKey = "payment-" + request.getOrderId();
 
-		log.info(
-				"Creating payment | orderId={} | idempotencyKey={}",
+		log.warn("Idempotency key generated default={}",idempotencyKey);
+
+
+		log.info("Creating payment | orderId={} | idempotencyKey={}",
 				request.getOrderId(),idempotencyKey);
 
 		// 2️Duplicate payment check 
@@ -69,12 +69,11 @@ public class PaymentServiceImpl implements PaymentService {
 		}
 
 		// 3️ Create Stripe Checkout Session
-		StripeCheckoutResponse stripeResponse =
+		StripeCheckoutResponseDto stripeResponse =
 				stripeCheckoutService.createCheckoutSession(
 						request.getOrderId(),
 						request.getAmount(),
-						request.getCurrency()
-						);
+						request.getCurrency());
 
 		// 4️ Create Payment entity
 		Payment payment = Payment.builder()
@@ -103,6 +102,64 @@ public class PaymentServiceImpl implements PaymentService {
 		response.setCheckoutUrl(stripeResponse.getCheckoutUrl());
 
 		return response;
+	}
+
+	@Override
+	public PaymentStatus cancelPayment(String stripePaymentId) {
+
+		log.warn("Cancelling payment | stripePaymentId={}", stripePaymentId);
+
+		Payment payment = paymentRepository
+				.findByStripePaymentId(stripePaymentId)
+				.orElseThrow(() -> {
+					log.error(
+							"Payment not found for cancel | stripePaymentId={}",
+							stripePaymentId
+							);
+					return new PaymentNotFoundException(stripePaymentId);
+				});
+
+		PaymentStatus currentStatus = payment.getStatus();
+
+		// Idempotent case: already canceled
+		if (currentStatus == PaymentStatus.CANCELED) {
+			log.info(
+					"Payment already canceled | paymentId={}",
+					payment.getId()
+					);
+			return PaymentStatus.CANCELED;
+		}
+
+		// Invalid transition
+		if (currentStatus == PaymentStatus.SUCCEEDED) {
+			log.warn(
+					"Attempt to cancel a successful payment | paymentId={}",
+					payment.getId()
+					);
+			throw new InvalidPaymentStatusTransitionException(
+					currentStatus,
+					PaymentStatus.CANCELED
+					);
+		}
+
+		// Only PROCESSING can be canceled
+		if (currentStatus != PaymentStatus.PROCESSING) {
+			throw new InvalidPaymentStatusTransitionException(
+					currentStatus,
+					PaymentStatus.CANCELED
+					);
+		}
+
+		// Valid cancel
+		payment.setStatus(PaymentStatus.CANCELED);
+		paymentRepository.save(payment);
+
+		log.info(
+				"Payment canceled successfully | paymentId={}",
+				payment.getId()
+				);
+
+		return PaymentStatus.CANCELED;
 	}
 
 
@@ -155,8 +212,7 @@ public class PaymentServiceImpl implements PaymentService {
 					"Invalid status transition | paymentId={} | from={} | to={}",
 					payment.getId(),
 					currentStatus,
-					newStatus
-					);
+					newStatus);
 
 			throw new InvalidPaymentStatusTransitionException(
 					currentStatus,newStatus);
@@ -183,67 +239,45 @@ public class PaymentServiceImpl implements PaymentService {
 				"Payment status updated | paymentId={} | status={}",
 				updatedPayment.getId(),updatedPayment.getStatus());
 
+		//////update order status here
+
+		notifyOrderService(updatedPayment);
+
 		return modelMapper.map(updatedPayment, PaymentResponseDto.class);
 	}
 
+	private void notifyOrderService(Payment payment) {
 
-	@Override
-	public PaymentStatus cancelPayment(String stripePaymentId) {
+		// We notify Order Service ONLY for final states
+		PaymentStatus status = payment.getStatus();
 
-	    log.warn("Cancelling payment | stripePaymentId={}", stripePaymentId);
+		if (status != PaymentStatus.SUCCEEDED &&
+				status != PaymentStatus.CANCELED &&
+				status != PaymentStatus.FAILED) {
+			return;
+		}
 
-	    Payment payment = paymentRepository
-	            .findByStripePaymentId(stripePaymentId)
-	            .orElseThrow(() -> {
-	                log.error(
-	                    "Payment not found for cancel | stripePaymentId={}",
-	                    stripePaymentId
-	                );
-	                return new PaymentNotFoundException(stripePaymentId);
-	            });
 
-	    PaymentStatus currentStatus = payment.getStatus();
+		// Map payment-service status → order-service contract enum
+		//else coverss  FAILED and CANCELED
+		PaymentStatusFromPaymentService orderPaymentStatus =
+				(status == PaymentStatus.SUCCEEDED)
+				? PaymentStatusFromPaymentService.COMPLETED
+						: PaymentStatusFromPaymentService.FAILED;
 
-	    // Idempotent case: already canceled
-	    if (currentStatus == PaymentStatus.CANCELED) {
-	        log.info(
-	            "Payment already canceled | paymentId={}",
-	            payment.getId()
-	        );
-	        return PaymentStatus.CANCELED;
-	    }
+		log.info(
+				"Notifying Order Service | orderId={} | paymentStatus={}",
+				payment.getOrderId(),
+				orderPaymentStatus);
 
-	    // Invalid transition
-	    if (currentStatus == PaymentStatus.SUCCEEDED) {
-	        log.warn(
-	            "Attempt to cancel a successful payment | paymentId={}",
-	            payment.getId()
-	        );
-	        throw new InvalidPaymentStatusTransitionException(
-	                currentStatus,
-	                PaymentStatus.CANCELED
-	        );
-	    }
-
-	    // Only PROCESSING can be canceled
-	    if (currentStatus != PaymentStatus.PROCESSING) {
-	        throw new InvalidPaymentStatusTransitionException(
-	                currentStatus,
-	                PaymentStatus.CANCELED
-	        );
-	    }
-
-	    // Valid cancel
-	    payment.setStatus(PaymentStatus.CANCELED);
-	    paymentRepository.save(payment);
-
-	    log.info(
-	        "Payment canceled successfully | paymentId={}",
-	        payment.getId()
-	    );
-
-	    return PaymentStatus.CANCELED;
+		orderClient.updateOrderPaymentStatus(
+				new OrderPaymentStatusUpdateRequestDto(
+						payment.getOrderId(),
+						payment.getId(),
+						orderPaymentStatus)
+				);
 	}
+
 
 
 
