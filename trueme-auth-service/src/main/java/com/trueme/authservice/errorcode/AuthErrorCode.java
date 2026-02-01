@@ -25,7 +25,9 @@ public enum AuthErrorCode {
     AUTH_404_USER_NOT_FOUND(
             HttpStatus.NOT_FOUND,"User not found"), 
     AUTH_403_OPERATION_NOT_ALLOWED(
-    		HttpStatus.FORBIDDEN,"You are not allowed to access");
+    		HttpStatus.FORBIDDEN,"You are not allowed to access"),
+    AUTH_403_EMAIL_NOT_VERIFIED(
+    		HttpStatus.FORBIDDEN,"Email must be verified");
 
     private final HttpStatus status;
     private final String defaultMessage;

@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CacheConfig {
 
     @Bean
-    public CacheErrorHandler cacheErrorHandler() {
+    CacheErrorHandler cacheErrorHandler() {
         return new CacheErrorHandler() {
 
             @Override

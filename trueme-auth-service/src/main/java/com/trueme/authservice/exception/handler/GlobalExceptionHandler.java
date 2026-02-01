@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.trueme.authservice.dto.ApiError;
 import com.trueme.authservice.errorcode.AuthErrorCode;
 import com.trueme.authservice.exception.AuthException;
+import com.trueme.authservice.exception.EmailAlreadyRegisteredException;
+import com.trueme.authservice.exception.OtpException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,28 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+	
+	@ExceptionHandler(OtpException.class)
+    public ResponseEntity<String> handleOtpException(
+    		OtpException ex) {
+    	
+    	log.warn("OtpException: {}",ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT) // 409
+                .body(ex.getMessage());
+    }
+	
+    @ExceptionHandler(EmailAlreadyRegisteredException.class)
+    public ResponseEntity<String> handleEmailAlreadyRegistered(
+            EmailAlreadyRegisteredException ex) {
+    	
+    	log.warn("EmailAlreadyRegisteredException: {}",ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT) // 409
+                .body(ex.getMessage());
+    }
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ApiError> handleValidationException(

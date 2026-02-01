@@ -11,17 +11,39 @@ import com.trueme.authservice.dto.AuthResponseDto;
 import com.trueme.authservice.dto.ForgotPasswordRequestDto;
 import com.trueme.authservice.dto.LoginRequestDto;
 import com.trueme.authservice.dto.RegisterRequestDto;
+import com.trueme.authservice.dto.SendEmailOtpRequestDto;
+import com.trueme.authservice.dto.VerifyEmailOtpRequestDto;
 import com.trueme.authservice.service.AuthService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
+    
+
+    @PostMapping("/email/send-otp")
+    public ResponseEntity<String> sendEmailOtp(
+            @Valid @RequestBody SendEmailOtpRequestDto dto) {
+    	
+
+        String message = authService.sendEmailOtp(dto.getEmail());
+        return ResponseEntity.ok(message);
+    }
+
+    @PostMapping("/email/verify-otp")
+    public ResponseEntity<String> verifyEmailOtp(
+            @Valid @RequestBody VerifyEmailOtpRequestDto dto) {
+
+        String message = authService.verifyEmailOtp(dto);
+        return ResponseEntity.ok(message);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDto> register(

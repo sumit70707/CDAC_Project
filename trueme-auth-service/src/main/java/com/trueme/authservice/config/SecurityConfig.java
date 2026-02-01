@@ -41,7 +41,9 @@ public class SecurityConfig {
 				.requestMatchers(
 						"/auth/login",
 						"/auth/register",
-						"/auth/forgot-password"
+						"/auth/forgot-password",
+						"/auth/email/send-otp",
+						"/auth/email/verify-otp"
 						).permitAll()
 				.requestMatchers(
 						"/swagger-ui.html",

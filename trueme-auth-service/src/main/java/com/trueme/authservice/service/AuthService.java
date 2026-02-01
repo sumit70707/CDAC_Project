@@ -4,6 +4,9 @@ import com.trueme.authservice.dto.AuthResponseDto;
 import com.trueme.authservice.dto.ForgotPasswordRequestDto;
 import com.trueme.authservice.dto.LoginRequestDto;
 import com.trueme.authservice.dto.RegisterRequestDto;
+import com.trueme.authservice.dto.VerifyEmailOtpRequestDto;
+
+import jakarta.validation.Valid;
 
 public interface AuthService {
 
@@ -14,4 +17,8 @@ public interface AuthService {
     //public List<UserResponseDto> getAllUsers();
     
     String forgotPassword(ForgotPasswordRequestDto dto);
+
+	String sendEmailOtp(String email);
+
+	String verifyEmailOtp( VerifyEmailOtpRequestDto dto);
 }

@@ -1,6 +1,8 @@
 package com.trueme.orderservice.service.impl;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,20 +10,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.trueme.orderservice.client.AddressClient;
+import com.trueme.orderservice.client.AuthClient;
 import com.trueme.orderservice.client.PaymentClient;
 import com.trueme.orderservice.client.ProductClient;
 import com.trueme.orderservice.dto.AddressResponseDto;
 import com.trueme.orderservice.dto.ApiResponse;
+import com.trueme.orderservice.dto.OrderEventDto;
+import com.trueme.orderservice.dto.OrderItemEventDto;
 import com.trueme.orderservice.dto.PaymentCheckoutRequest;
 import com.trueme.orderservice.dto.PaymentCheckoutResponseDto;
 import com.trueme.orderservice.dto.ProductResponseDto;
 import com.trueme.orderservice.dto.ReduceStockRequest;
+import com.trueme.orderservice.dto.UserDetailsDto;
 import com.trueme.orderservice.entity.Cart;
 import com.trueme.orderservice.entity.CartItem;
 import com.trueme.orderservice.entity.Order;
 import com.trueme.orderservice.entity.OrderItem;
 import com.trueme.orderservice.entity.enums.CartStatus;
+import com.trueme.orderservice.entity.enums.FulfillmentStatus;
+import com.trueme.orderservice.entity.enums.OrderEventType;
 import com.trueme.orderservice.entity.enums.OrderStatus;
 import com.trueme.orderservice.entity.enums.PaymentStatus;
 import com.trueme.orderservice.entity.enums.ProductStatus;
@@ -29,6 +36,7 @@ import com.trueme.orderservice.exception.cart.CartNotFoundException;
 import com.trueme.orderservice.exception.order.EmptyCartForOrderException;
 import com.trueme.orderservice.exception.product.InsufficientStockException;
 import com.trueme.orderservice.exception.product.ProductInactiveException;
+import com.trueme.orderservice.kafka.OrderNotificationProducer;
 import com.trueme.orderservice.repository.CartItemRepository;
 import com.trueme.orderservice.repository.CartRepository;
 import com.trueme.orderservice.repository.OrderItemRepository;
@@ -49,10 +57,13 @@ public class CheckoutServiceImpl implements CheckoutService {
 	private final OrderRepository orderRepository;
 	private final OrderItemRepository orderItemRepository;
 	private final ProductClient productClient;
-	private final AddressClient addressClient;
+	private final AuthClient authClient;
 	private final ObjectMapper objectMapper;
 	private Long addressId;
 	private final PaymentClient paymentClient;
+	private final OrderNotificationProducer orderNotificationProducer;
+	List<OrderItemEventDto> orderItemEvents = new ArrayList<>();
+
 
 
 	@Override
@@ -69,11 +80,13 @@ public class CheckoutServiceImpl implements CheckoutService {
 		if (cartItems.isEmpty()) {
 			throw new EmptyCartForOrderException(userId);
 		}
+		
+		final String orderNumber=UUID.randomUUID().toString();
 
 		// 2️ Create Order FIRST with zero total
 		// (total will be calculated after validating products)
 		Order order = Order.builder()
-				.orderNumber(UUID.randomUUID().toString())
+				.orderNumber(orderNumber)
 				.userId(userId)
 				.shippingAddressSnapshot(buildAddressSnapshot(userId)) 
 				.shippingAddressId(addressId)
@@ -84,6 +97,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 				.build();
 
 		orderRepository.save(order);
+		
 
 		// 3️ Create OrderItems + calculate total using Product Service
 		BigDecimal orderTotal = BigDecimal.ZERO;
@@ -122,6 +136,17 @@ public class CheckoutServiceImpl implements CheckoutService {
 
 			orderItemRepository.save(orderItem);
 			
+			//build OrderItemEventDto for email
+		     orderItemEvents.add(
+		                new OrderItemEventDto(
+		                        product.getName(),
+		                        cartItem.getQuantity(),
+		                        product.getPrice(),
+		                        FulfillmentStatus.PENDING
+		                )
+		        );
+			
+			
 			//decrease stock 
 			productClient.reduceStock(
 		            product.getId(),new ReduceStockRequest(cartItem.getQuantity()));
@@ -137,12 +162,31 @@ public class CheckoutServiceImpl implements CheckoutService {
 		cart.setActive(false);                    // no longer usable
 		cart.setStatus(CartStatus.CHECKED_OUT);   // lifecycle info
 		cartRepository.save(cart);
+		
+		//get usr details first
+		UserDetailsDto userDetails = authClient.getUserDetails(userId);
+		
+	    //  KAFKA ORDER_CREATED EVENT
+	    OrderEventDto orderEvent = new OrderEventDto(
+	            OrderEventType.ORDER_CREATED,
+	            order.getOrderNumber(),
+	            userDetails.getUserName(),         
+	            userDetails.getEmail(),         
+	            PaymentStatus.PENDING,
+	            orderItemEvents,              // ALL items
+	            orderTotal
+	    );
+
+	    // Publish  
+	    orderNotificationProducer.publishOrderEvent(orderEvent);
+
 
 		// 6 call paymey service
 		PaymentCheckoutResponseDto paymentResponse =
 	            paymentClient.createCheckout(
 	                    PaymentCheckoutRequest.builder()
 	                            .orderId(order.getId())
+	                            .orderNumber(orderNumber)
 	                            .userId(userId)
 	                            .amount(orderTotal)
 	                            .currency("INR")
@@ -162,7 +206,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 
 	    try {
 	        AddressResponseDto address =
-	                addressClient.getDefaultAddress(userId);
+	        		authClient.getDefaultAddress(userId);
 	        
 	        addressId =address.getId();
 

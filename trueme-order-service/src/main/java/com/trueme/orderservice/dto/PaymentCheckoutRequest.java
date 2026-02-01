@@ -13,7 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentCheckoutRequest {
     private Long orderId;
+    private String orderNumber;
     private Long userId;
+    private String userName;
+    private String email;
     private BigDecimal amount;
     private String currency;
 }
