@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { handlePaymentCancel } from '../../services/paymentService';
+import toast from 'react-hot-toast';
 
 const PaymentCancel = () => {
     const [searchParams] = useSearchParams();
@@ -8,6 +9,9 @@ const PaymentCancel = () => {
 
     useEffect(() => {
         const sessionId = searchParams.get('session_id');
+
+        // Show toast
+        toast.error("Payment Cancelled / Failed");
 
         if (sessionId) {
             // Notify backend about cancellation

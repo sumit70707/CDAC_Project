@@ -147,21 +147,7 @@ const About = () => {
         </div>
       </div>
 
-      {/* Call to Action */}
-      <div className="max-w-4xl mx-auto px-6 py-24 text-center">
-        <h2 className="text-5xl font-black uppercase tracking-tighter mb-8">
-          Ready to Experience True Skincare?
-        </h2>
-        <p className="text-xl text-gray-600 mb-12 leading-relaxed">
-          No gimmicks. No hidden ingredients. Just honest, pH-balanced skincare selected by skin type.
-        </p>
-        <a
-          href="/shop"
-          className="inline-block bg-black text-white px-12 py-5 text-lg font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
-        >
-          Shop Now
-        </a>
-      </div>
+
 
     </div>
   );

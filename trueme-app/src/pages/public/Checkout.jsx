@@ -13,6 +13,38 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(false);
 
+  // Handle Address Validation
+  const [checkingAddress, setCheckingAddress] = useState(true);
+
+  React.useEffect(() => {
+    const checkAddress = async () => {
+      if (isAuthenticated) {
+        try {
+          const { getMyAddress } = await import('../../services/userService');
+          const address = await getMyAddress();
+          if (!address || !address.addressLine1 || !address.city || !address.state || !address.postalCode) {
+            toast.error("Address not found. Please fill in your address to proceed with the payment.");
+            navigate('/profile?tab=address'); // Redirect to profile address tab
+          }
+        } catch (error) {
+          // If address not found or error
+          console.error("Address check failed", error);
+          // Assuming if error means no address??
+          // Let's assume if it throws (404?), we redirect.
+          // But if it's unrelated error, we might block checkout.
+          // Design decision: Warn user.
+          // toast("Please ensure you have an address saved.");
+        } finally {
+          setCheckingAddress(false);
+        }
+      } else {
+        setCheckingAddress(false);
+      }
+    };
+    checkAddress();
+  }, [isAuthenticated, navigate]);
+
+
   // Handle Checkout WITH PAYMENT INTEGRATION
   const handlePlaceOrder = async () => {
     if (!isAuthenticated) {
@@ -24,6 +56,24 @@ const Checkout = () => {
     setLoading(true);
 
     try {
+      // 1. Strict Address Validation on Click
+      const { getMyAddress } = await import('../../services/userService');
+      const address = await getMyAddress();
+
+      // Check for presence and all required fields (matching Dashboard.jsx fields)
+      const hasStreet = address?.addressLine1 && address.addressLine1.trim() !== "";
+      const hasCity = address?.city && address.city.trim() !== "";
+      const hasState = address?.state && address.state.trim() !== "";
+      const hasPincode = address?.postalCode && address.postalCode.trim() !== "";
+
+      if (!address || !hasStreet || !hasCity || !hasState || !hasPincode) {
+        toast.error("Address not found. Please fill in your address to proceed with the payment.");
+        setLoading(false);
+        navigate('/profile?tab=address');
+        return; // CRITICAL: Stop execution before calling createOrder()
+      }
+
+      // 2. Proceed to Create Order
       // Backend creates order AND initiates payment in one call
       // Returns ApiResponse { message: "checkoutUrl", status: "PAYMENT_URL" }
       const response = await createOrder();
@@ -55,7 +105,6 @@ const Checkout = () => {
       toast.error(errorMessage);
       setLoading(false);
     }
-    // Note: We don't set loading to false here because user is being redirected
   };
 
   // Redirect if empty

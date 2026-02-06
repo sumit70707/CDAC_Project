@@ -241,7 +241,7 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
               <h2 className="text-2xl font-black uppercase tracking-tight">Address Book</h2>
               {!isEditingAddress && !address && (
-                <button onClick={handleAddOrEditAddress} className="btn btn-sm btn-black text-white rounded-none uppercase tracking-widest">
+                <button onClick={handleAddOrEditAddress} className="bg-black text-white px-8 py-3 font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-all shadow-lg border-2 border-black active:scale-95">
                   Add Address
                 </button>
               )}

@@ -33,31 +33,56 @@ const Home = () => {
   return (
     <div className="bg-white font-sans">
 
-      {/* --- HERO SECTION --- */}
-      <div className="relative bg-gradient-to-br from-gray-900 via-black to-gray-800 h-[600px] flex items-center mb-0 overflow-hidden">
-        {/* Subtle overlay pattern */}
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}></div>
+      {/* --- HERO SECTION (IMPROVISED) --- */}
+      <div className="relative h-[700px] flex items-center mb-0 overflow-hidden group">
+        {/* Main Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 group-hover:scale-105"
+          style={{
+            backgroundImage: `url("https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=1920&q=80")`,
+          }}
+        ></div>
 
-        <div className="container mx-auto px-6 relative z-20 text-center text-white">
-          <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6 animate-fade-in">
-            TrueMe
-          </h1>
-          <div className="w-32 h-1 bg-white mx-auto mb-8"></div>
-          <p className="text-xl md:text-3xl font-light tracking-[0.3em] uppercase mb-6 opacity-90">
-            Authentic Skincare
-          </p>
-          <p className="text-lg md:text-xl font-normal mb-12 opacity-80 max-w-2xl mx-auto leading-relaxed">
-            Science-backed formulations that honor your skin's natural pH balance.<br />
-            Premium ingredients. Zero compromises.
-          </p>
-          <Link
-            to="/shop"
-            className="inline-block bg-white text-black px-12 py-4 font-bold uppercase tracking-widest text-sm hover:bg-gray-200 transition-all border-2 border-white"
-          >
-            Discover Collection
-          </Link>
+        {/* Premium Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+
+        <div className="container mx-auto px-6 relative z-20 text-left text-white max-w-4xl ml-12 md:ml-24">
+          <div className="overflow-hidden">
+            <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter mb-2 animate-slide-up">
+              TrueMe
+            </h1>
+          </div>
+          <div className="w-24 h-1 bg-white mb-8"></div>
+
+          <div className="space-y-4 max-w-xl">
+            <h2 className="text-xl md:text-2xl font-bold tracking-[0.4em] uppercase opacity-90">
+              Your Skin, Truly You
+            </h2>
+            <p className="text-lg md:text-xl font-medium opacity-80 leading-relaxed border-l-4 border-white pl-6">
+              Science-backed formulations that honor your skin's natural pH balance.
+              Premium ingredients. <span className="font-bold text-white">Zero compromises.</span>
+            </p>
+          </div>
+
+          <div className="mt-12 flex gap-4">
+            <Link
+              to="/shop"
+              className="inline-block bg-white text-black px-12 py-5 font-black uppercase tracking-widest text-xs hover:bg-black hover:text-white transition-all duration-300 border-2 border-white shadow-2xl active:scale-95"
+            >
+              Shop Collection
+            </Link>
+            <Link
+              to="/about"
+              className="inline-block bg-transparent text-white px-12 py-5 font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all duration-300 border-2 border-white/50 backdrop-blur-sm"
+            >
+              Our Story
+            </Link>
+          </div>
+        </div>
+
+        {/* Floating Accent Line */}
+        <div className="absolute bottom-12 right-12 text-white/30 text-[10px] uppercase tracking-[1em] font-black vertical-text hidden lg:block">
+          Est. 2024 • Pure Science
         </div>
       </div>
 
@@ -81,48 +106,47 @@ const Home = () => {
         </div>
       </div>
 
-      {/* --- SHOP BY CONCERN --- */}
-      <div className="bg-gray-50 py-20">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">Shop by Concern</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Find targeted solutions for your unique skin needs</p>
+      {/* --- SHOP BY CONCERN (REPLACED & IMPROVISED) --- */}
+      <div className="bg-white py-12 border-b border-black">
+        <div className="container mx-auto px-4">
+          <div className="bg-black text-white py-3 px-6 mb-8 flex justify-between items-center group cursor-default">
+            <h2 className="text-sm font-black uppercase tracking-[0.2em]">Shop by Concern</h2>
+            <div className="flex gap-8 text-[10px] font-bold uppercase tracking-widest opacity-80">
+              <span className="hover:opacity-100 cursor-pointer transition-opacity">Shop by Category</span>
+              <span className="hover:opacity-100 cursor-pointer transition-opacity">All Products</span>
+              <span className="hover:opacity-100 cursor-pointer transition-opacity">Combo Kits</span>
+              <span className="hover:opacity-100 cursor-pointer transition-opacity">Track Order</span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              {
-                name: 'Acne Control',
-                img: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=400',
-                desc: 'Clear & balanced'
-              },
-              {
-                name: 'Deep Hydration',
-                img: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&w=400',
-                desc: 'Plump & moisturized'
-              },
-              {
-                name: 'Radiant Glow',
-                img: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400',
-                desc: 'Bright & luminous'
-              },
-              {
-                name: 'Anti-Aging',
-                img: 'https://images.unsplash.com/photo-1571781535009-536321e028e6?auto=format&fit=crop&w=400',
-                desc: 'Firm & youthful'
-              }
+              { name: 'Oily Skin', slug: 'oily', img: 'https://images.unsplash.com/photo-1596755389378-c31d2115167e?auto=format&fit=crop&w=800' },
+              { name: 'Dry Skin', slug: 'dry', img: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800' },
+              { name: 'Sensitive Skin', slug: 'sensitive', img: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?auto=format&fit=crop&w=800' },
+              { name: 'Normal Skin', slug: 'normal', img: 'https://images.unsplash.com/photo-1619451334792-150fd785ee74?auto=format&fit=crop&w=800' },
             ].map((item, idx) => (
-              <Link to="/shop" key={idx} className="group relative overflow-hidden bg-white border border-gray-200 transition-all hover:shadow-2xl">
-                <div className="aspect-square overflow-hidden">
+              <Link
+                to={`/shop?concern=${item.slug}`}
+                key={idx}
+                className="group relative flex flex-col items-center overflow-hidden bg-gray-50 hover:shadow-xl transition-all duration-300"
+              >
+                {/* Image Container */}
+                <div className="aspect-square w-full overflow-hidden">
                   <img
                     src={item.img}
                     alt={item.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover grayscale-[0.2] transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"
                   />
                 </div>
-                <div className="p-6 text-center">
-                  <h3 className="text-sm font-black uppercase tracking-wide mb-2">{item.name}</h3>
-                  <p className="text-xs text-gray-500">{item.desc}</p>
+                {/* Black Bar Label */}
+                <div className="w-full bg-black py-4 px-6 flex justify-between items-center group-hover:bg-gray-900 transition-colors">
+                  <span className="text-xs font-black text-white uppercase tracking-widest truncate">
+                    {item.name}
+                  </span>
+                  <span className="text-white text-xs font-bold transform translate-x-0 group-hover:translate-x-1 transition-transform">
+                    &raquo;
+                  </span>
                 </div>
               </Link>
             ))}
@@ -246,6 +270,27 @@ const Home = () => {
         </div>
       </div>
 
+      {/* --- CONTACT SECTION (Under About/Philosophy) --- */}
+      <div id="contact" className="py-24 bg-white border-y border-black">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">Support & Feedback</h2>
+          <p className="text-gray-500 uppercase tracking-widest text-xs mb-12 font-bold">Get in touch with us</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto font-sans">
+            <div className="p-10 border border-gray-100 hover:bg-gray-50 transition-colors">
+              <div className="text-3xl mb-4">✉️</div>
+              <h4 className="text-sm font-black uppercase tracking-widest mb-2">Email</h4>
+              <a href="mailto:support@trueme.com" className="text-xl font-bold hover:underline">support@trueme.com</a>
+            </div>
+            <div className="p-10 border border-gray-100 hover:bg-gray-50 transition-colors">
+              <div className="text-3xl mb-4">📞</div>
+              <h4 className="text-sm font-black uppercase tracking-widest mb-2">Phone</h4>
+              <a href="tel:+919876543210" className="text-xl font-bold hover:underline">+91 98765 43210</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* --- CTA BANNER --- */}
       <div className="bg-black text-white py-16">
         <div className="container mx-auto px-6 text-center">
@@ -254,13 +299,13 @@ const Home = () => {
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <Link
               to="/shop"
-              className="inline-block bg-white text-black px-10 py-4 font-bold uppercase tracking-widest text-sm hover:bg-gray-200 transition-all"
+              className="inline-block bg-white text-black px-12 py-4 font-bold rounded-lg uppercase tracking-widest text-sm hover:bg-gray-200 transition-all shadow-lg"
             >
               Shop Now
             </Link>
             <Link
               to="/about"
-              className="inline-block border-2 border-white text-white px-10 py-4 font-bold uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-all"
+              className="inline-block border-2 border-white text-white px-12 py-4 font-bold rounded-lg uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-all shadow-lg"
             >
               Learn More
             </Link>

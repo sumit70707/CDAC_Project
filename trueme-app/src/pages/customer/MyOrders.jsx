@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { getMyOrders } from '../../services/orderService';
-import { Link } from 'react-router-dom';
+import { getMyOrders, cancelOrder } from '../../services/orderService';
+import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate
+import toast from 'react-hot-toast';
 
 const MyOrders = () => {
+    const navigate = useNavigate(); // Hook
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,6 +25,17 @@ const MyOrders = () => {
             setError("Could not load your orders.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCancel = async (orderId) => {
+        if (!window.confirm("Are you sure you want to cancel this order?")) return;
+        try {
+            await cancelOrder(orderId);
+            toast.success("Order cancelled successfully");
+            fetchOrders(); // Refresh list
+        } catch (error) {
+            toast.error("Failed to cancel order (Feature might not be supported by backend yet)");
         }
     };
 
@@ -81,10 +94,23 @@ const MyOrders = () => {
                                         ? 'bg-black text-white'
                                         : order.orderStatus === 'SHIPPED'
                                             ? 'bg-blue-600 text-white'
-                                            : 'badge-outline'
+                                            : order.orderStatus === 'CANCELLED'
+                                                ? 'bg-red-600 text-white line-through'
+                                                : 'badge-outline'
                                         }`}>
                                         {order.orderStatus}
                                     </span>
+
+                                    {/* Cancel Button */}
+                                    {/* Show only if status is PENDING (or not shipped/delivered/cancelled) */}
+                                    {(order.orderStatus === 'PENDING' || order.orderStatus === 'PLACED') && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleCancel(order.orderId); }}
+                                            className="btn btn-xs btn-outline border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-none uppercase tracking-widest"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

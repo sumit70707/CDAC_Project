@@ -54,25 +54,36 @@ const Shop = () => {
         const concern = queryParams.get('concern');
 
         if (concern) {
-            // Map concern to relevant filters (Simple logic for now)
+            // Map concern to relevant filters
             let type = '';
             let skin = '';
 
             switch (concern) {
-                case 'acne': skin = 'OILY'; break;
-                case 'dry': skin = 'DRY'; break;
-                case 'aging': type = 'SERUM'; break; // Example mapping
-                case 'dull': type = 'TONER'; break;
-                default: break;
+                case 'oily':
+                    skin = 'OILY';
+                    break;
+                case 'dry':
+                    skin = 'DRY';
+                    break;
+                case 'sensitive':
+                    skin = 'SENSITIVE';
+                    break;
+                case 'normal':
+                    skin = 'NORMAL';
+                    break;
+                default:
+                    break;
             }
 
-            setFilters(prev => ({ ...prev, skinType: skin, productType: type }));
+            const newFilters = { ...filters, skinType: skin, productType: type };
+            setFilters(newFilters);
 
-            // Trigger filter immediately if mapped
-            if (skin || type) {
-                const params = {};
-                if (skin) params.skinType = skin;
-                if (type) params.productType = type;
+            // Trigger filter immediately
+            const params = {};
+            if (skin) params.skinType = skin;
+            if (type) params.productType = type;
+
+            if (Object.keys(params).length > 0) {
                 fetchFiltered(params);
             } else {
                 loadProducts();
@@ -382,8 +393,8 @@ const Shop = () => {
                                     key={idx}
                                     onClick={() => handlePageChange(idx)}
                                     className={`px-4 py-2 border font-bold text-xs transition-colors ${idx === currentPage
-                                            ? 'bg-black text-white border-black'
-                                            : 'bg-white text-black border-black hover:bg-black hover:text-white'
+                                        ? 'bg-black text-white border-black'
+                                        : 'bg-white text-black border-black hover:bg-black hover:text-white'
                                         }`}
                                 >
                                     {idx + 1}

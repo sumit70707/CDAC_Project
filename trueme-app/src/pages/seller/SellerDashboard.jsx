@@ -188,6 +188,7 @@ const SellerDashboard = () => {
                           <option value="SHIPPED">Shipped</option>
                           <option value="DELIVERED">Delivered</option>
                           <option value="RETURNED">Returned</option>
+                          <option value="CANCELLED">Cancelled</option>
                         </select>
                         {orderItem.fulfillmentStatus === 'DELIVERED' && (
                           <p className="text-xs text-gray-500 mt-1">✓ Final status</p>
@@ -331,8 +332,20 @@ const AddProductForm = ({ onCancel, onSuccess }) => {
           <input name="name" value={formData.name} onChange={handleChange} required className="input input-bordered rounded-none" />
         </div>
         <div className="form-control">
-          <label className="label"><span className="label-text font-bold uppercase text-xs tracking-widest">Image URL</span></label>
-          <input name="imageUrl" type="url" value={formData.imageUrl} onChange={handleChange} required className="input input-bordered rounded-none" placeholder="https://example.com/image.jpg" />
+          <label className="label"><span className="label-text font-bold uppercase text-xs tracking-widest">Product Image Path</span></label>
+          <input
+            name="imageUrl"
+            value={formData.imageUrl}
+            onChange={handleChange}
+            placeholder="/images/product/your-image.jpg"
+            required
+            className="input input-bordered rounded-none"
+          />
+          <div className="label">
+            <span className="label-text-alt text-gray-500 text-xs">
+              * Enter the path exactly as: <code>/images/product/filename.jpg</code>
+            </span>
+          </div>
         </div>
         <div className="form-control">
           <label className="label"><span className="label-text font-bold uppercase text-xs tracking-widest">Price (₹)</span></label>

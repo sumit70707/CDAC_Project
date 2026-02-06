@@ -19,6 +19,7 @@ import PaymentCancel from './pages/public/PaymentCancel';
 import Blog from './pages/public/Blog';
 import BlogDetails from './pages/public/BlogDetails';
 import About from './pages/public/About';
+import Contact from './pages/public/Contact';
 
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -87,12 +88,17 @@ function App() {
         {/* --- PUBLIC ROUTES (MainLayout) --- */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
+          <Route path="/shop" element={
+            <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN', 'SELLER']}>
+              <Shop />
+            </ProtectedRoute>
+          } />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
 
           {/* Checkout & Payment */}
           <Route path="/checkout" element={<Checkout />} />

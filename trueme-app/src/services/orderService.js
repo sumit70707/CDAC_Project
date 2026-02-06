@@ -53,7 +53,18 @@ export const getSellerOrders = async () => {
   return [];
 };
 
-// 5. Update Order Status (Seller)
+// 5. Cancel Order (Customer)
+export const cancelOrder = async (orderId) => {
+  try {
+    const response = await axiosInstance.put(`${BASE_URL}/${orderId}/cancel`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error canceling order ${orderId}:`, error);
+    throw error;
+  }
+};
+
+// 6. Update Order Status (Seller)
 export const updateOrderStatus = async (orderId, status) => {
   // Placeholder
 };

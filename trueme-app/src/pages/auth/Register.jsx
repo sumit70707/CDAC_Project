@@ -136,12 +136,12 @@ const Register = () => {
             {/* Email & Verification Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <input
                   type="email"
                   name="email"
                   placeholder="name@example.com"
-                  className={`appearance - none relative block w - full px - 4 py - 3 border ${isEmailVerified ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-300'} placeholder - gray - 400 text - gray - 900 rounded - lg focus: outline - none focus: ring - 2 focus: ring - black focus: border - black sm: text - sm transition - all`}
+                  className={`appearance-none relative block w-full px-4 py-3 border ${isEmailVerified ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-300'} placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all`}
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -151,13 +151,13 @@ const Register = () => {
                     type="button"
                     onClick={handleSendOtp}
                     disabled={loading || otpSent || !formData.email}
-                    className="whitespace-nowrap px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all"
+                    className="whitespace-nowrap px-6 py-3 border border-transparent text-sm font-bold rounded-lg text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all h-full"
                   >
                     {loading && !otpSent ? <span className="loading loading-spinner loading-xs"></span> : "Verify"}
                   </button>
                 )}
                 {isEmailVerified && (
-                  <div className="flex items-center px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg whitespace-nowrap">
+                  <div className="flex items-center px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg whitespace-nowrap h-full">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
@@ -167,14 +167,14 @@ const Register = () => {
               </div>
               {/* OTP Input - Inline */}
               {otpSent && !isEmailVerified && (
-                <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 animate-fadeIn">
-                  <p className="text-xs text-gray-500 mb-2">Enter the verification code sent to your email.</p>
-                  <div className="flex gap-2">
+                <div className="mt-4 p-5 bg-gray-50 rounded-lg border border-gray-200 animate-fadeIn">
+                  <p className="text-xs text-gray-500 mb-3 font-semibold uppercase tracking-wide">Enter Verification Code</p>
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <input
                       type="text"
                       name="otp"
-                      placeholder="Enter 6-digit OTP"
-                      className={`flex - 1 appearance - none relative block w - full px - 4 py - 2 border ${otpError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'} placeholder - gray - 400 text - gray - 900 rounded - lg focus: outline - none focus: ring - 2 focus: ring - black focus: border - black sm: text - sm tracking - widest text - center`}
+                      placeholder="XXXXXX"
+                      className={`flex-1 appearance-none block w-full px-4 py-3 border ${otpError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'} placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm tracking-widest text-center text-lg font-mono uppercase`}
                       value={otp}
                       onChange={(e) => {
                         setOtp(e.target.value);
@@ -186,19 +186,19 @@ const Register = () => {
                       type="button"
                       onClick={handleVerifyOtp}
                       disabled={loading}
-                      className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-all"
+                      className="px-6 py-3 border border-transparent text-sm font-bold rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-all shadow-sm"
                     >
                       {loading ? <span className="loading loading-spinner loading-xs"></span> : "Confirm"}
                     </button>
                   </div>
                   {otpError && (
-                    <p className="text-xs text-red-600 mt-2 font-medium">
-                      {otpError}
+                    <p className="text-xs text-red-600 mt-2 font-medium flex items-center gap-1">
+                      <span>⚠</span> {otpError}
                     </p>
                   )}
-                  <div className="mt-2 text-right">
-                    <button type="button" onClick={handleSendOtp} className="text-xs text-blue-600 hover:text-blue-800 underline">
-                      Resend Code
+                  <div className="mt-3 text-right">
+                    <button type="button" onClick={handleSendOtp} className="text-xs font-bold text-gray-500 hover:text-black hover:underline uppercase tracking-wider">
+                      Resend Code?
                     </button>
                   </div>
                 </div>
