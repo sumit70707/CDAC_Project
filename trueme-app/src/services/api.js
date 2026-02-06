@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Matches your Partner's Spring Boot Port
-const API_BASE_URL = 'http://localhost:8080';
+// UPDATED: Pointing to your Swagger Port 8081
+const API_BASE_URL = 'http://localhost:8081';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

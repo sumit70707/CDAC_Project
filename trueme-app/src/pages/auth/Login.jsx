@@ -1,96 +1,131 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../services/authService';
-import { loginSuccess } from '../../context/authSlice';
+import { loginStart, loginSuccess, loginFailure, clearError } from '../../context/authSlice';
 
 const Login = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'SELLER') {
+        navigate('/seller/dashboard', { replace: true });
+      } else if (user.role === 'ADMIN') {
+        navigate('/admin', { replace: true });
+      } else {
+        const from = location.state?.from?.pathname || '/profile';
+        navigate(from, { replace: true });
+      }
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, [isAuthenticated, user, navigate, location, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    dispatch(loginStart());
 
     try {
-      // 1. Call API
-      const data = await loginUser(formData);
-      console.log("Login API Response:", data);
-
-      // 2. Save to Redux
-      dispatch(loginSuccess({
-        user: data.user,
-        token: data.token
-      }));
-
-      alert("Login Successful!");
-      navigate('/'); 
-
-    } catch (error) {
-      console.error("Login Error:", error);
-      alert("Login Failed: " + (error.message || "Invalid credentials"));
-    } finally {
-      setLoading(false);
+      const data = await loginUser({ email, password });
+      // Backend returns { accessToken: "...", user: { ... } }
+      dispatch(loginSuccess(data));
+      // Navigation handled by useEffect
+    } catch (err) {
+      console.error("Login failed:", err);
+      dispatch(loginFailure(err.message || 'Invalid email or password'));
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] bg-base-200">
-      <div className="card w-96 bg-base-100 shadow-xl border border-gray-100">
-        <div className="card-body">
-          <h2 className="card-title text-2xl font-bold justify-center mb-6">Welcome Back</h2>
-          
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            
-            {/* Email Field */}
-            <div className="form-control">
-              <label className="label"><span className="label-text">Email</span></label>
-              <input 
-                type="email" 
-                name="email" 
-                placeholder="email@example.com" 
-                className="input input-bordered" 
-                onChange={handleChange} 
-                required 
-              />
-            </div>
+    <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-10 shadow-xl rounded-2xl">
+        <div>
+          <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900 tracking-tight font-serif">
+            Welcome Back
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Sign in to access your account
+          </p>
+        </div>
 
-            {/* Password Field */}
-            <div className="form-control">
-              <label className="label"><span className="label-text">Password</span></label>
-              <input 
-                type="password" 
-                name="password" 
-                placeholder="Enter password" 
-                className="input input-bordered" 
-                onChange={handleChange} 
-                required 
+        {error && (
+          <div role="alert" className="alert alert-error rounded-lg shadow-md border-l-4 border-red-500">
+            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span className="font-medium">{error}</span>
+          </div>
+        )}
+
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm space-y-4">
+            <div>
+              <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-black focus:z-10 sm:text-sm transition-all duration-200"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              {/* --- FORGOT PASSWORD LINK ADDED HERE --- */}
-              <label className="label">
-                <Link to="/forgot-password" class="label-text-alt link link-hover text-primary font-medium">
-                  Forgot password?
-                </Link>
-              </label>
             </div>
-            
-            {/* Submit Button */}
-            <button className="btn btn-primary mt-2" disabled={loading}>
-              {loading ? <span className="loading loading-spinner"></span> : "Login"}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-black focus:z-10 sm:text-sm transition-all duration-200"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <Link to="/forgot-password" className="font-medium text-black hover:text-gray-700 underline underline-offset-2">
+                Forgot your password?
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <span className="loading loading-spinner loading-sm text-white"></span>
+              ) : (
+                "Sign In"
+              )}
             </button>
-          </form>
+          </div>
+        </form>
 
-          <div className="divider my-4">OR</div>
-
-          <p className="text-center text-sm">
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/register" className="link link-primary font-bold">Register</Link>
+            <Link to="/register" className="font-bold text-black hover:text-gray-800 transition-colors duration-200 underline underline-offset-2">
+              Create an account
+            </Link>
           </p>
         </div>
       </div>

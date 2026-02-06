@@ -1,160 +1,152 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { createOrder } from '../../services/orderService';
 import { clearCart } from '../../context/cartSlice';
 
 const Checkout = () => {
   const { cartItems, totalAmount } = useSelector((state) => state.cart);
-  const { user } = useSelector((state) => state.auth);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(false);
 
-  // Address Form State (Matches your Database Schema)
-  const [address, setAddress] = useState({
-    addressLine1: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: 'India'
-  });
+  // Handle Checkout WITH PAYMENT INTEGRATION
+  const handlePlaceOrder = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to place an order");
+      navigate('/login');
+      return;
+    }
 
-  const [paymentMethod, setPaymentMethod] = useState('CARD'); // Default Mock Payment
-
-  // Handle Input Change
-  const handleChange = (e) => {
-    setAddress({ ...address, [e.target.name]: e.target.value });
-  };
-
-  // Handle Form Submit
-  const handlePlaceOrder = async (e) => {
-    e.preventDefault();
     setLoading(true);
 
-    const orderPayload = {
-      items: cartItems,
-      totalAmount: totalAmount,
-      shippingAddress: address,
-      paymentMethod: paymentMethod,
-      customerId: user?.id || 1 // Fallback for mock
-    };
-
     try {
-      const response = await createOrder(orderPayload);
-      
-      alert(`🎉 Success! Your Order Number is: ${response.orderId}`);
-      
-      // Clear Cart and Redirect to Home (or Order History later)
-      dispatch(clearCart());
-      navigate('/');
+      // Backend creates order AND initiates payment in one call
+      // Returns ApiResponse { message: "checkoutUrl", status: "PAYMENT_URL" }
+      const response = await createOrder();
+
+      // Extract checkout URL from response
+      const checkoutUrl = response.message; // The URL is in the message field
+
+      if (checkoutUrl && checkoutUrl.startsWith('http')) {
+        toast.success("Order created! Redirecting to payment...");
+
+        // Clear cart BEFORE redirecting to payment
+        dispatch(clearCart());
+
+        // Redirect user to Stripe Checkout
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error("No valid checkout URL received from server");
+      }
 
     } catch (error) {
-      alert("Order Failed. Please try again.");
-    } finally {
+      console.error("Checkout Error:", error);
+
+      // Show detailed error message from backend
+      const errorMessage = error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Checkout Failed. Please try again.";
+
+      toast.error(errorMessage);
       setLoading(false);
     }
+    // Note: We don't set loading to false here because user is being redirected
   };
 
   // Redirect if empty
   if (cartItems.length === 0) {
-    return <div className="p-10 text-center">Your cart is empty! <button onClick={() => navigate('/shop')} className="btn btn-link">Go Shop</button></div>;
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center font-sans">
+        <h2 className="text-3xl font-black uppercase tracking-tighter mb-4">Your Bag is Empty</h2>
+        <button onClick={() => navigate('/shop')} className="btn btn-link text-black uppercase tracking-widest">Go to Shop</button>
+      </div>
+    );
   }
 
+  const shipping = totalAmount > 499 ? 0 : 50;
+  const finalTotal = totalAmount + shipping;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-5xl mx-auto">
-      
-      {/* LEFT: Shipping Form */}
-      <div>
-        <h2 className="text-2xl font-bold mb-6">Shipping Details</h2>
-        <form id="checkout-form" onSubmit={handlePlaceOrder} className="flex flex-col gap-4">
-          
-          <div className="form-control">
-            <label className="label"><span className="label-text">Address Line 1</span></label>
-            <input type="text" name="addressLine1" required className="input input-bordered" onChange={handleChange} placeholder="House No, Street Area" />
-          </div>
+    <div className="min-h-screen bg-white py-16 font-sans text-black">
+      <div className="max-w-5xl mx-auto px-6">
 
-          <div className="flex gap-4">
-            <div className="form-control w-1/2">
-              <label className="label"><span className="label-text">City</span></label>
-              <input type="text" name="city" required className="input input-bordered" onChange={handleChange} />
-            </div>
-            <div className="form-control w-1/2">
-              <label className="label"><span className="label-text">State</span></label>
-              <input type="text" name="state" required className="input input-bordered" onChange={handleChange} />
-            </div>
-          </div>
+        {/* Header */}
+        <div className="mb-12 border-b border-black pb-4">
+          <h1 className="text-4xl font-black uppercase tracking-tighter">Checkout</h1>
+          <p className="text-gray-500 text-sm uppercase tracking-widest mt-2">Review Your Order</p>
+        </div>
 
-          <div className="flex gap-4">
-            <div className="form-control w-1/2">
-              <label className="label"><span className="label-text">Postal Code</span></label>
-              <input type="text" name="postalCode" required className="input input-bordered" onChange={handleChange} />
-            </div>
-            <div className="form-control w-1/2">
-              <label className="label"><span className="label-text">Country</span></label>
-              <input type="text" name="country" value="India" readOnly className="input input-bordered bg-gray-100" />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
-          {/* Payment Method Selection (Mock) */}
-          <h3 className="text-xl font-bold mt-6 mb-2">Payment Method</h3>
-          <div className="flex gap-4">
-            <label className="label cursor-pointer gap-2 border p-3 rounded-lg hover:border-primary">
-              <input type="radio" name="payment" className="radio radio-primary" checked={paymentMethod === 'CARD'} onChange={() => setPaymentMethod('CARD')} />
-              <span className="label-text">Credit/Debit Card</span>
-            </label>
-            <label className="label cursor-pointer gap-2 border p-3 rounded-lg hover:border-primary">
-              <input type="radio" name="payment" className="radio radio-primary" checked={paymentMethod === 'UPI'} onChange={() => setPaymentMethod('UPI')} />
-              <span className="label-text">UPI</span>
-            </label>
-          </div>
-
-        </form>
-      </div>
-
-      {/* RIGHT: Order Summary */}
-      <div>
-        <div className="card bg-base-100 shadow-xl border border-gray-200">
-          <div className="card-body">
-            <h2 className="card-title mb-4">Your Order</h2>
-            
-            {/* List of Items (Compact) */}
-            <ul className="space-y-3 mb-4 max-h-60 overflow-y-auto">
+          {/* LEFT: Order Items */}
+          <div>
+            <h2 className="text-xl font-bold uppercase tracking-widest mb-6">Items in Your Bag</h2>
+            <div className="space-y-6">
               {cartItems.map((item) => (
-                <li key={item.id} className="flex justify-between text-sm">
-                  <span>{item.quantity}x {item.name}</span>
-                  <span className="font-bold">₹{item.totalPrice}</span>
-                </li>
+                <div key={item.id} className="flex gap-4 border-b border-gray-100 pb-4">
+                  <div className="w-20 h-20 bg-gray-100 flex-shrink-0">
+                    <img src={item.imageUrl || "https://placehold.co/150"} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold uppercase text-sm">{item.name}</h3>
+                    <p className="text-gray-500 text-xs mt-1">Qty: {item.quantity}</p>
+                    <p className="font-mono text-sm mt-2">₹{item.totalPrice}</p>
+                  </div>
+                </div>
               ))}
-            </ul>
-
-            <div className="divider"></div>
-
-            <div className="flex justify-between text-xl font-bold">
-              <span>Total To Pay</span>
-              <span className="text-primary">₹{totalAmount}</span>
             </div>
-
-            <div className="card-actions mt-6">
-              <button 
-                type="submit" 
-                form="checkout-form" 
-                className="btn btn-primary btn-block" 
-                disabled={loading}
-              >
-                {loading ? <span className="loading loading-spinner"></span> : "Place Order & Pay"}
-              </button>
-            </div>
-            
-            <p className="text-xs text-center text-gray-400 mt-2">
-              Secure Checkout powered by Stripe (Mock)
-            </p>
-
           </div>
+
+          {/* RIGHT: Order Summary & Checkout */}
+          <div className="bg-gray-50 p-8 h-fit sticky top-24">
+            <h2 className="text-xl font-bold uppercase tracking-widest mb-6 border-b border-black pb-2">Order Summary</h2>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between text-sm">
+                <span className="uppercase text-gray-600">Subtotal</span>
+                <span className="font-mono font-bold">₹{totalAmount}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="uppercase text-gray-600">Shipping</span>
+                {shipping === 0 ? (
+                  <span className="font-bold text-black">FREE</span>
+                ) : (
+                  <span className="font-mono font-bold">₹{shipping}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-dashed border-gray-300 my-6"></div>
+
+            <div className="flex justify-between items-end mb-8">
+              <span className="text-lg font-bold uppercase">Total</span>
+              <span className="text-3xl font-black">₹{finalTotal}</span>
+            </div>
+
+            <button
+              onClick={handlePlaceOrder}
+              className="btn bg-black text-white w-full rounded-none h-14 uppercase tracking-widest hover:bg-gray-800 border-none text-sm"
+              disabled={loading || !isAuthenticated}
+            >
+              {loading ? <span className="loading loading-spinner text-white"></span> : "Proceed to Payment"}
+            </button>
+
+            {!isAuthenticated && (
+              <p className="text-xs text-center text-error mt-4">Please login to checkout</p>
+            )}
+
+            <p className="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest">
+              Secure Stripe Payment | 256-bit Encryption
+            </p>
+          </div>
+
         </div>
       </div>
-
     </div>
   );
 };

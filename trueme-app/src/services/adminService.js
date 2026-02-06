@@ -1,24 +1,59 @@
-import api from './api';
+import axiosInstance from '../api/axiosInstance';
 
-const USE_MOCK = true;
-const mockResponse = (data) => new Promise((resolve) => setTimeout(() => resolve(data), 500));
-
-// MOCK USER LIST
-const MOCK_USERS = [
-  { id: 1, name: "Alice Customer", email: "alice@test.com", role: "CUSTOMER", status: "ACTIVE", isPremium: false },
-  { id: 2, name: "Bob Seller", email: "bob@seller.com", role: "SELLER", status: "ACTIVE", isPremium: false },
-  { id: 3, name: "Charlie User", email: "charlie@test.com", role: "CUSTOMER", status: "SUSPENDED", isPremium: true },
-  { id: 4, name: "Dave Admin", email: "admin@trueme.com", role: "ADMIN", status: "ACTIVE", isPremium: true },
-];
-
+// 1. Get All Users (Admin)
 export const getAllUsers = async () => {
-  if (USE_MOCK) return mockResponse(MOCK_USERS);
-  const response = await api.get('/admin/users');
-  return response.data;
+  try {
+    // Correct Path: /auth/admin/users
+    const response = await axiosInstance.get('/auth/admin/users');
+    return response.data;
+  } catch (error) {
+    console.error("Admin API Error:", error);
+    // Return empty array to prevent crash
+    return [];
+  }
 };
 
-// Toggle User Status (Active/Suspended)
+// 2. Toggle User Status (Suspend/Activate)
+// Backend: PUT /auth/admin/users/{id} (Body: UpdateUserRequestDto?) 
+// OR DELETE /auth/admin/users/{id}? User list says DELETE is for delete.
+// User list says: PUT /auth/admin/users/{id}.
+// Let's assume PUT updates status.
 export const toggleUserStatus = async (userId, currentStatus) => {
-  console.log(`Switching User ${userId} from ${currentStatus}`);
-  return mockResponse({ success: true });
+  try {
+    // We send payload to update status. 
+    // If backend expects specific DTO, we might need to check.
+    // For now assuming we send { status: '...' }
+    const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    const response = await axiosInstance.put(`/auth/admin/users/${userId}`, {
+      status: newStatus
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Status Change Error:", error);
+    throw error;
+  }
+};
+
+// 3. Delete User (Admin)
+export const deleteUser = async (userId) => {
+  try {
+    const response = await axiosInstance.delete(`/auth/admin/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete User Error:", error);
+    throw error;
+  }
+};
+
+// 4. Toggle Premium Status (Admin)
+export const togglePremiumStatus = async (userId, isPremium) => {
+  try {
+    const response = await axiosInstance.put(`/auth/admin/users/${userId}`, {
+      isPremium: isPremium
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Premium Toggle Error:", error);
+    throw error;
+  }
 };

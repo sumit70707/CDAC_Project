@@ -1,53 +1,53 @@
-import api from './api';
+import axiosInstance from '../api/axiosInstance';
 
-// --- MOCK MODE: Set to TRUE while backend is offline ---
-const USE_MOCK = true;
+const BASE_URL = '/auth';
 
-const mockResponse = (data, delay = 1000) => 
-  new Promise((resolve) => setTimeout(() => resolve(data), delay));
+// 1. Send Email OTP
+export const sendEmailOtp = async (email) => {
+  // POST /auth/email/send-otp
+  const response = await axiosInstance.post(`${BASE_URL}/email/send-otp`, { email });
+  return response.data; // String message
+};
 
-// 1. Register
+// 2. Verify Email OTP
+export const verifyEmailOtp = async (email, otp) => {
+  // POST /auth/email/verify-otp
+  const response = await axiosInstance.post(`${BASE_URL}/email/verify-otp`, { email, otp });
+  return response.data; // String message
+};
+
+// 3. Register (Complete Registration)
 export const registerUser = async (userData) => {
-  if (USE_MOCK) {
-    console.log("⚠️ MOCK REGISTER CALL:", userData);
-    return mockResponse({ message: "User registered successfully!" });
-  }
-  const response = await api.post('/auth/register', userData);
-  return response.data;
+  // POST /auth/register
+  // userData matches RegisterRequestDto: { firstName, lastName, email, password, role, ... }
+  const response = await axiosInstance.post(`${BASE_URL}/register`, userData);
+  return response.data; // AuthResponseDto { accessToken, user }
 };
 
-// 2. Login
+// 4. Login
 export const loginUser = async (credentials) => {
-  if (USE_MOCK) {
-    console.log("⚠️ MOCK LOGIN CALL:", credentials);
-    // Simulate a JWT Token and User Data response
-    return mockResponse({
-      token: "fake-jwt-token-xyz-123",
-      user: {
-        id: 1,
-        email: credentials.email,
-        firstName: "Test",
-        lastName: "User",
-        role: "CUSTOMER" // Change to 'ADMIN' or 'SELLER' to test those views later
-      }
-    });
+  // POST /auth/login
+  const response = await axiosInstance.post(`${BASE_URL}/login`, credentials);
+  if (response.data && response.data.accessToken) {
+    localStorage.setItem('token', response.data.accessToken);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
   }
-  const response = await api.post('/auth/login', credentials);
-  return response.data;
+  return response.data; // AuthResponseDto
 };
 
-// 3. Forgot Password (MOCK + REAL)
-export const forgotPassword = async (email) => {
-  if (USE_MOCK) {
-    console.log("⚠️ MOCK FORGOT PASSWORD for:", email);
-    // Simulate network delay
-    return mockResponse({ 
-      success: true, 
-      message: "Password reset link sent to your email." 
-    });
+// 5. Logout
+export const logoutUser = async () => {
+  try {
+    await axiosInstance.post(`${BASE_URL}/logout`);
+  } finally {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
-  
-  // Real Backend Call (Matches your Partner's SMTP Logic)
-  const response = await api.post('/auth/forgot-password', { email });
+};
+
+// 6. Forgot Password
+export const forgotPassword = async (email, newPassword) => {
+  // POST /auth/forgot-password
+  const response = await axiosInstance.post(`${BASE_URL}/forgot-password`, { email, newPassword });
   return response.data;
 };
