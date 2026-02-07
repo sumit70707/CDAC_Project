@@ -1,7 +1,6 @@
 package com.trueme.orderservice.service.impl;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -9,6 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trueme.orderservice.client.AuthClient;
 import com.trueme.orderservice.client.PaymentClient;
@@ -33,6 +33,7 @@ import com.trueme.orderservice.entity.enums.OrderStatus;
 import com.trueme.orderservice.entity.enums.PaymentStatus;
 import com.trueme.orderservice.entity.enums.ProductStatus;
 import com.trueme.orderservice.exception.cart.CartNotFoundException;
+import com.trueme.orderservice.exception.order.AddressNotFoundException;
 import com.trueme.orderservice.exception.order.EmptyCartForOrderException;
 import com.trueme.orderservice.exception.product.InsufficientStockException;
 import com.trueme.orderservice.exception.product.ProductInactiveException;
@@ -82,13 +83,13 @@ public class CheckoutServiceImpl implements CheckoutService {
 		}
 		
 		final String orderNumber=UUID.randomUUID().toString();
-
+		
 		// 2️ Create Order FIRST with zero total
 		// (total will be calculated after validating products)
 		Order order = Order.builder()
 				.orderNumber(orderNumber)
 				.userId(userId)
-				.shippingAddressSnapshot(buildAddressSnapshot(userId)) 
+				.shippingAddressSnapshot(buildAddressSnapshot(userId))
 				.shippingAddressId(addressId)
 				.paymentStatus(PaymentStatus.PENDING)                    
 				.orderStatus(OrderStatus.CREATED)
@@ -204,34 +205,28 @@ public class CheckoutServiceImpl implements CheckoutService {
 	
 	private String buildAddressSnapshot(Long userId) {
 
+	    AddressResponseDto address;
+
 	    try {
-	        AddressResponseDto address =
-	        		authClient.getDefaultAddress(userId);
-	        
-	        addressId =address.getId();
-
-	        return objectMapper.writeValueAsString(address);
-
+	        address = authClient.getDefaultAddress(userId);
 	    } catch (Exception ex) {
-	        log.warn("Address service unavailable, using dummy address", ex);
-	        return buildDummyAddressSnapshot(userId); // fallback
+	        log.error("Failed to fetch address for userId={}", userId, ex);
+	        throw new AddressNotFoundException(userId);
+	    }
+
+	    if (address == null) {
+	        throw new AddressNotFoundException(userId);
+	    }
+
+	    this.addressId = address.getId();
+
+	    try {
+	        return objectMapper.writeValueAsString(address);
+	    } catch (JsonProcessingException e) {
+	        throw new RuntimeException("Failed to serialize address snapshot", e);
 	    }
 	}
 
-
-	private String buildDummyAddressSnapshot(Long userId) {
-		return """
-				{
-				  "userId": %d,
-				  "name": "Test User",
-				  "addressLine1": "Test Street 123",
-				  "city": "Pune",
-				  "state": "MH",
-				  "pincode": "411001",
-				  "country": "India"
-				}
-				""".formatted(userId);
-	}
 
 
 }

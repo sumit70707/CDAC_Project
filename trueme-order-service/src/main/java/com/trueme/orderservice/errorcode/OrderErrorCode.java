@@ -8,10 +8,11 @@ public enum OrderErrorCode {
     ORD_400_EMPTY_CART(HttpStatus.BAD_REQUEST, "Cannot place order with empty cart"),
     ORD_409_ALREADY_PLACED(HttpStatus.CONFLICT, "Order already placed"),
     ORD_400_INVALID_STATUS(HttpStatus.BAD_REQUEST, "Invalid order status transition"),
+    ORD_405_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED,"Order can not be cancelled"),
     ITEM_404(HttpStatus.NOT_FOUND, "Order item not found"),
     ITEM_400_INVALID_STATUS(HttpStatus.BAD_REQUEST, "Invalid fulfillment status"),
-    ITEM_409_ALREADY_DELIVERED(HttpStatus.CONFLICT, "Order item already delivered");
-
+    ITEM_409_ALREADY_DELIVERED(HttpStatus.CONFLICT, "Order item already delivered"),
+    Add_404_ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND,"Address not found");
     private final HttpStatus status;
     private final String defaultMessage;
 

@@ -46,7 +46,7 @@ public class InternalPaymentController {
                         )
                 );
 
-        // 🔁 Return only checkout URL to Order Service
+        // Return only checkout URL to Order Service
         return new PaymentCheckoutResponseDto(
                 response.getCheckoutUrl()
         );

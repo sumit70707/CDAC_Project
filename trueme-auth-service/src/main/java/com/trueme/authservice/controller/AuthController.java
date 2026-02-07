@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trueme.authservice.dto.AuthResponseDto;
 import com.trueme.authservice.dto.ForgotPasswordRequestDto;
+import com.trueme.authservice.dto.ForgotPasswordSendOtpRequestDto;
 import com.trueme.authservice.dto.LoginRequestDto;
 import com.trueme.authservice.dto.RegisterRequestDto;
 import com.trueme.authservice.dto.SendEmailOtpRequestDto;
@@ -63,14 +64,23 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
     
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequestDto dto) {
-    	
-        String message=authService.forgotPassword(dto);
-        
+    @PostMapping("/forgot-password/send-otp")
+    public ResponseEntity<String> sendForgotPasswordOtp(
+            @Valid @RequestBody ForgotPasswordSendOtpRequestDto dto) {
+
+        String message = authService.sendForgotPasswordOtp(dto.getEmail());
         return ResponseEntity.ok(message);
     }
+    
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<String> resetPassword(
+            @Valid @RequestBody ForgotPasswordRequestDto dto) {
+
+        String message = authService.resetPassword(dto);
+        return ResponseEntity.ok(message);
+    }
+
+
 
     
     @PostMapping("/logout")

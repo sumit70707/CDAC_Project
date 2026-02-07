@@ -176,7 +176,7 @@ public class PaymentServiceImpl implements PaymentService {
 	public PaymentResponseDto updatePaymentStatus(
 			PaymentStatusUpdateRequestDto request) {
 
-		// Basic validation (PAY_400)
+		// Basic validation 
 		if (request.getStripePaymentId() == null || request.getStatus() == null) {
 			throw new InvalidPaymentStatusException(
 					"stripePaymentId and status must not be null");

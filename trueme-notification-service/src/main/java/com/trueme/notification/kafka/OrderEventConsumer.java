@@ -25,13 +25,13 @@ public class OrderEventConsumer {
     public void consumeOrderEvent(String message) {
 
         try {
-            // 1️⃣ Deserialize Kafka message
+            // 1️ Deserialize Kafka message
             OrderEventDto event =
                     objectMapper.readValue(message, OrderEventDto.class);
 
             log.info("Received OrderEvent: {}", event);
 
-            // 2️⃣ Route based on event type
+            // 2️ Route based on event type
             switch (event.getEventType()) {
 
                 case ORDER_CREATED:
@@ -56,9 +56,7 @@ public class OrderEventConsumer {
         }
     }
 
-    // ===============================
     // ORDER CREATED
-    // ===============================
     private void handleOrderCreated(OrderEventDto event) {
 
         log.info(
@@ -76,9 +74,7 @@ public class OrderEventConsumer {
         );
     }
 
-    // ===============================
     // ITEM STATUS UPDATED
-    // ===============================
     private void handleItemStatusUpdated(OrderEventDto event) {
 
         log.info(
@@ -95,9 +91,7 @@ public class OrderEventConsumer {
         );
     }
 
-    // ===============================
-    // ORDER CANCELLED (future-safe)
-    // ===============================
+    // ORDER CANCELLED 
     private void handleOrderCancelled(OrderEventDto event) {
 
         log.info(

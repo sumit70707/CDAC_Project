@@ -36,4 +36,13 @@ public class InternalProductController {
         productService.decreaseStock(productId, request.getQuantity());
         return ResponseEntity.ok().build();
     }
+    
+    @PostMapping("/{productId}/increase-stock")
+    public ResponseEntity<Void> increaseStock(
+            @PathVariable Long productId,
+            @RequestBody StockUpdateRequest request) {
+
+        productService.increaseStock(productId, request.getQuantity());
+        return ResponseEntity.ok().build();
+    }
 }

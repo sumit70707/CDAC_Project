@@ -120,7 +120,6 @@ public class ProductController {
 	}
 
 	@PutMapping("/{id}/stock/decrease")
-	@PreAuthorize("hasAnyRole('SELLER')")
 	public ResponseEntity<Void> decreaseStock(
 			@PathVariable Long id,
 			@RequestBody StockUpdateRequest request) {
@@ -130,7 +129,6 @@ public class ProductController {
 	}
 
 	@PutMapping("/{id}/stock/increase")
-	@PreAuthorize("hasAnyRole('SELLER','ORDER_SERVICE')")
 	public ResponseEntity<Void> increaseStock(
 			@PathVariable Long id,
 			@RequestBody StockUpdateRequest request) {

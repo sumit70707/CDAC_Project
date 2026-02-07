@@ -126,37 +126,46 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(email, subject, body.toString());
     }
 
+    
     @Override
     public void sendOrderCancelledEmail(
-            String email,
+            String toEmail,
             String userName,
             String orderNumber,
             List<OrderItemEventDto> items,
-            BigDecimal totalAmount) {
+            BigDecimal refundAmount) {
 
-        String subject = "❌ Order Cancelled | Order #" + orderNumber;
+        String subject = "Your Order Has Been Cancelled | Order #" + orderNumber;
 
         StringBuilder body = new StringBuilder();
-        body.append("Hi ").append(userName).append(",\n\n")
-            .append("Your order has been cancelled.\n\n")
+
+        body.append("Hello ").append(userName).append(",\n\n")
+            .append("Your order has been successfully cancelled.\n\n")
             .append("Order Number: ").append(orderNumber).append("\n\n")
             .append("Cancelled Items:\n")
             .append("---------------------------------\n");
 
         for (OrderItemEventDto item : items) {
-            body.append("Product: ").append(item.getProductName()).append("\n")
-                .append("Quantity: ").append(item.getQuantity()).append("\n")
-                .append("Price: ₹").append(item.getPrice()).append("\n")
+            body.append("- ")
+                .append(item.getProductName())
+                .append(" | Qty: ").append(item.getQuantity())
+                .append(" | Price: ₹").append(item.getPrice())
+                .append("\n")
                 .append("---------------------------------\n");
         }
 
-        body.append("Total Amount: ₹").append(totalAmount).append("\n\n")
-            .append("If payment was completed, refund will be processed shortly.\n\n")
-            .append("Regards,\n")
-            .append("Trueme Team");
+        body.append("\n")
+            .append("Refund Amount: ₹").append(refundAmount).append("\n\n")
+            .append("The refund will be processed to your original payment method.\n")
+            .append("If you have any questions, feel free to contact our support team.\n\n")
+            .append("Thanks,\n")
+            .append("TrueMe Team");
 
-        sendEmail(email, subject, body.toString());
+        sendEmail(toEmail, subject, body.toString());
+
+        log.info("Order cancelled email sent to {}", toEmail);
     }
+
 
     // COMMON EMAIL SENDER
     private void sendEmail(String to, String subject, String text) {
@@ -198,8 +207,7 @@ public class EmailServiceImpl implements EmailService {
                                 event.getUserName(),
                                 event.getOrderNumber(),
                                 event.getStripePaymentId(),
-                                event.getAmount()
-                        );
+                                event.getAmount());
             }
 
             case FAILED, CANCELED -> {

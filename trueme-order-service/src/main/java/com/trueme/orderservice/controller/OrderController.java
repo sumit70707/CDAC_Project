@@ -7,10 +7,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.trueme.orderservice.dto.ApiResponse;
 import com.trueme.orderservice.dto.ApiResponseWithData;
 import com.trueme.orderservice.dto.OrderResponseDto;
 import com.trueme.orderservice.service.OrderService;
@@ -36,6 +38,19 @@ public class OrderController {
         return ResponseEntity.ok(
                 orderService.getMyOrders(userId, page, size));
     }
+    
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<ApiResponse> cancelOrder(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long orderId) {
+
+        Long userId = jwt.getClaim("userId");
+
+        ApiResponse response = orderService.cancelOrder(userId, orderId);
+
+        return ResponseEntity.ok(response);
+    }
+
 
 
     @GetMapping("/{orderId}")

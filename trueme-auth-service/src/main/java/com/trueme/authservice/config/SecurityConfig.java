@@ -39,11 +39,12 @@ public class SecurityConfig {
 		.authorizeHttpRequests(auth -> auth
 				// Public auth APIs ONLY
 				.requestMatchers(
-						"/auth/login",
-						"/auth/register",
-						"/auth/forgot-password",
-						"/auth/email/send-otp",
-						"/auth/email/verify-otp"
+//						"/auth/login",
+//						"/auth/register",
+//						"/auth/forgot-password",
+//						"/auth/email/send-otp",
+//						"/auth/email/verify-otp"
+						"/auth/**"
 						).permitAll()
 				.requestMatchers(
 						"/swagger-ui.html",

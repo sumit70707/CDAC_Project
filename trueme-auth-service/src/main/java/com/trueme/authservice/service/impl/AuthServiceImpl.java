@@ -236,20 +236,94 @@ public class AuthServiceImpl implements AuthService {
 	//	}
 
 	@Override
-	public String forgotPassword(ForgotPasswordRequestDto dto) {
+	public String sendForgotPasswordOtp(String email) {
 
-		User user = userRepository.findByEmail(dto.getEmail())
-				.orElseThrow(() ->
-				new AuthException(AuthErrorCode.AUTH_404_USER_NOT_FOUND));
+	    // 1️ Check user exists
+	    if (!userRepository.existsByEmail(email)) {
+	        throw new AuthException(AuthErrorCode.AUTH_404_USER_NOT_FOUND);
+	    }
 
-		user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+	    String resendKey = "forgot-otp-resend:" + email;
+	    String otpKey = "forgot-otp:" + email;
 
-		userRepository.save(user);
+	    Long resendCount = redisTemplate.opsForValue().increment(resendKey);
 
-		log.info("Password changed for User: {}",dto);
+	    if (resendCount != null && resendCount == 1) {
+	        redisTemplate.expire(resendKey, 15, TimeUnit.MINUTES);
+	    }
 
-		return "Password changed successfully for user: " + dto.getEmail();
+	    if (resendCount != null && resendCount > 3) {
+	        throw new OtpException("Too many OTP requests. Try later.");
+	    }
 
+	    String otp = generateOtp();
+	    String otpHash = passwordEncoder.encode(otp);
+
+	    Map<String, Object> otpData = new HashMap<>();
+	    otpData.put("otpHash", otpHash);
+	    otpData.put("attempts", 0);
+
+	    redisTemplate.opsForValue().set(
+	            otpKey, otpData, 5, TimeUnit.MINUTES);
+
+	    SendOtpEmailRequestDto emailDto =
+	            new SendOtpEmailRequestDto(email, otp);
+
+	    notificationClient.sendOtpEmail(emailDto);
+
+	    log.info("Forgot password OTP sent to {}", email);
+
+	    return "OTP sent for password reset";
 	}
+	
+	@Override
+	public String resetPassword(ForgotPasswordRequestDto dto) {
+
+	    String email = dto.getEmail();
+	    String otpKey = "forgot-otp:" + email;
+
+	    Map<String, Object> otpData =
+	            (Map<String, Object>) redisTemplate.opsForValue().get(otpKey);
+
+	    if (otpData == null) {
+	        throw new OtpException("OTP expired or not requested");
+	    }
+
+	    int attempts = (int) otpData.get("attempts");
+	    if (attempts >= 5) {
+	        redisTemplate.delete(otpKey);
+	        throw new OtpException("Too many invalid attempts");
+	    }
+
+	    String storedHash = (String) otpData.get("otpHash");
+
+	    if (!passwordEncoder.matches(dto.getOtp(), storedHash)) {
+	        otpData.put("attempts", attempts + 1);
+	        redisTemplate.opsForValue().set(
+	                otpKey,
+	                otpData,
+	                redisTemplate.getExpire(otpKey),
+	                TimeUnit.SECONDS);
+
+	        throw new OtpException("Invalid OTP");
+	    }
+
+	    // OTP VALID → update password
+	    User user = userRepository.findByEmail(email)
+	            .orElseThrow(() ->
+	                    new AuthException(AuthErrorCode.AUTH_404_USER_NOT_FOUND));
+
+	    user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+	    userRepository.save(user);
+
+	    // cleanup
+	    redisTemplate.delete(otpKey);
+
+	    log.info("Password reset successfully for {}", email);
+
+	    return "Password reset successfully";
+	}
+
+
 
 }

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.trueme.orderservice.dto.IncreaseStockRequest;
 import com.trueme.orderservice.dto.ProductResponseDto;
 import com.trueme.orderservice.dto.ReduceStockRequest;
 
@@ -13,16 +14,24 @@ import com.trueme.orderservice.dto.ReduceStockRequest;
 			url = "${trueme-product-catalog-service.url}")
 public interface ProductClient {
 
-    // 🔹 INTERNAL: fetch product for cart / checkout validation
+    // fetch product for cart / checkout validation
     @GetMapping("/internal/products/{productId}")
     ProductResponseDto getProductById(
             @PathVariable("productId") Long productId
     );
 
-    // 🔹 INTERNAL: reduce stock AFTER payment success
+    // reduce stock AFTER payment success
     @PostMapping("/internal/products/{productId}/reduce-stock")
     void reduceStock(
             @PathVariable("productId") Long productId,
             @RequestBody ReduceStockRequest request
     );
+    
+    @PostMapping("/internal/products/{productId}/increase-stock")
+    void increaseStock(
+            @PathVariable("productId") Long productId,
+            @RequestBody IncreaseStockRequest request
+    );
+    
+    
 }

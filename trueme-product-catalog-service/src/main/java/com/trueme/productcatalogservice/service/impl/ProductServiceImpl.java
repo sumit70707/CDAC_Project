@@ -211,6 +211,8 @@ public class ProductServiceImpl implements ProductService {
 		}
 
 		repo.save(product);
+		
+		log.info("Stock increased | productId={} | qty={}", productId, qty);
 
 	}
 
