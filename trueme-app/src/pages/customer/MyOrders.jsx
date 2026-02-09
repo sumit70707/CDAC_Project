@@ -103,7 +103,7 @@ const MyOrders = () => {
 
                                     {/* Cancel Button */}
                                     {/* Show only if status is PENDING (or not shipped/delivered/cancelled) */}
-                                    {(order.orderStatus === 'PENDING' || order.orderStatus === 'PLACED') && (
+                                    {(order.orderStatus === 'PENDING' || order.orderStatus === 'CREATED') && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleCancel(order.orderId); }}
                                             className="btn btn-xs btn-outline border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-none uppercase tracking-widest"

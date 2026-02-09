@@ -14,18 +14,13 @@ export const getAllUsers = async () => {
 };
 
 // 2. Toggle User Status (Suspend/Activate)
-// Backend: PUT /auth/admin/users/{id} (Body: UpdateUserRequestDto?) 
-// OR DELETE /auth/admin/users/{id}? User list says DELETE is for delete.
-// User list says: PUT /auth/admin/users/{id}.
-// Let's assume PUT updates status.
+// Backend: DELETE /auth/admin/users/{id} with Body: DeleteUserRequestDto { status: 'ACTIVE' | 'SUSPENDED' }
+// Note: Using DELETE with body is unusual but required by backend contract.
 export const toggleUserStatus = async (userId, currentStatus) => {
   try {
-    // We send payload to update status. 
-    // If backend expects specific DTO, we might need to check.
-    // For now assuming we send { status: '...' }
     const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    const response = await axiosInstance.put(`/auth/admin/users/${userId}`, {
-      status: newStatus
+    const response = await axiosInstance.delete(`/auth/admin/users/${userId}`, {
+      data: { status: newStatus }
     });
     return response.data;
   } catch (error) {
@@ -34,10 +29,13 @@ export const toggleUserStatus = async (userId, currentStatus) => {
   }
 };
 
-// 3. Delete User (Admin)
+// 3. Delete User (Admin) - Effectively Suspend
 export const deleteUser = async (userId) => {
   try {
-    const response = await axiosInstance.delete(`/auth/admin/users/${userId}`);
+    // Backend requires status. detailed delete might just be suspend.
+    const response = await axiosInstance.delete(`/auth/admin/users/${userId}`, {
+      data: { status: 'SUSPENDED' }
+    });
     return response.data;
   } catch (error) {
     console.error("Delete User Error:", error);
@@ -46,6 +44,7 @@ export const deleteUser = async (userId) => {
 };
 
 // 4. Toggle Premium Status (Admin)
+// Backend: PUT /auth/admin/users/{id} with Body: UpdateUserRequestDto { isPremium: boolean }
 export const togglePremiumStatus = async (userId, isPremium) => {
   try {
     const response = await axiosInstance.put(`/auth/admin/users/${userId}`, {

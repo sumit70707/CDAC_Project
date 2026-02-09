@@ -270,15 +270,15 @@ const SellerDashboard = () => {
               </div>
               <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-8 rounded-lg">
                 <p className="text-sm uppercase tracking-widest opacity-80 mb-2">Total Revenue</p>
-                <p className="text-5xl font-black">₹{summary.totalRevenue || 0}</p>
+                <p className="text-5xl font-black">₹{summary.totalIncome || 0}</p>
               </div>
               <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-8 rounded-lg">
                 <p className="text-sm uppercase tracking-widest opacity-80 mb-2">Pending Orders</p>
-                <p className="text-5xl font-black">{summary.pendingOrders || 0}</p>
+                <p className="text-5xl font-black">{(summary.totalOrders || 0) - (summary.deliveredOrders || 0)}</p>
               </div>
               <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-8 rounded-lg">
                 <p className="text-sm uppercase tracking-widest opacity-80 mb-2">Completed</p>
-                <p className="text-5xl font-black">{summary.completedOrders || 0}</p>
+                <p className="text-5xl font-black">{summary.deliveredOrders || 0}</p>
               </div>
             </div>
           ) : (

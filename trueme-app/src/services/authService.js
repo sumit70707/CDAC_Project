@@ -46,8 +46,20 @@ export const logoutUser = async () => {
 };
 
 // 6. Forgot Password
-export const forgotPassword = async (email, newPassword) => {
-  // POST /auth/forgot-password
-  const response = await axiosInstance.post(`${BASE_URL}/forgot-password`, { email, newPassword });
+// 6. Forgot Password - Step 1: Send OTP
+export const sendForgotPasswordOtp = async (email) => {
+  // POST /auth/forgot-password/send-otp
+  const response = await axiosInstance.post(`${BASE_URL}/forgot-password/send-otp`, { email });
+  return response.data;
+};
+
+// 7. Forgot Password - Step 2: Reset Password (Verify OTP + New Password)
+export const forgotPassword = async (email, otp, newPassword) => {
+  // POST /auth/forgot-password/reset
+  const response = await axiosInstance.post(`${BASE_URL}/forgot-password/reset`, {
+    email,
+    otp,
+    newPassword
+  });
   return response.data;
 };

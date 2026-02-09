@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getOrderDetails } from '../../services/orderService';
-import { initiateCheckout } from '../../services/paymentService';
+import { getOrderDetails, cancelOrder } from '../../services/orderService';
+import { initiateCheckout } from '../../services/paymentService'; // Keep if needed for retry
 
 const OrderDetails = () => {
     const { orderId } = useParams();
@@ -28,29 +28,25 @@ const OrderDetails = () => {
         }
     };
 
-    // TODO: Backend doesn't have retry payment endpoint yet
-    // Payment retry should be implemented when backend supports it
+    const handleCancelOrder = async () => {
+        if (!window.confirm("Are you sure you want to cancel this order?")) return;
+
+        try {
+            await cancelOrder(orderId);
+            toast.success("Order cancelled successfully");
+            fetchOrderDetails(); // Refresh to show new status
+        } catch (error) {
+            console.error("Cancellation failed", error);
+            const msg = error.response?.data?.message || "Failed to cancel order";
+            toast.error(msg);
+        }
+    };
+
     const handleRetryPayment = async () => {
         setRetryingPayment(true);
+        // Placeholder for future backend implementation
         toast.error("Payment retry not available yet. Please contact support.");
         setRetryingPayment(false);
-
-        /* 
-        // This will work once backend implements retry payment endpoint
-        try {
-            const paymentResponse = await initiateCheckout(orderId);
-            if (paymentResponse.checkoutUrl) {
-                window.location.href = paymentResponse.checkoutUrl;
-            } else {
-                toast.error("Failed to initiate payment. Please try again.");
-                setRetryingPayment(false);
-            }
-        } catch (error) {
-            console.error("Payment retry failed:", error);
-            toast.error("Failed to retry payment. Please contact support.");
-            setRetryingPayment(false);
-        }
-        */
     };
 
     if (loading) return <div className="min-h-screen flex justify-center items-center"><span className="loading loading-spinner loading-lg"></span></div>;
@@ -95,15 +91,27 @@ const OrderDetails = () => {
                                 ? 'bg-yellow-500 text-black'
                                 : 'bg-red-600 text-white'
                             }`}>
-                            💳 {order.paymentStatus || 'PENDING'}
+                            {order.paymentStatus || 'PENDING'}
                         </span>
-                        {(order.paymentStatus === 'PENDING' || order.paymentStatus === 'FAILED') && (
+
+                        {/* Pay Now Button (Retry) */}
+                        {(order.paymentStatus === 'PENDING' || order.paymentStatus === 'FAILED') && order.orderStatus !== 'CANCELLED' && (
                             <button
                                 onClick={handleRetryPayment}
                                 disabled={retryingPayment}
                                 className="btn btn-xs bg-black text-white rounded-none uppercase tracking-widest"
                             >
                                 {retryingPayment ? 'Processing...' : 'Pay Now'}
+                            </button>
+                        )}
+
+                        {/* Cancel Button */}
+                        {['PROCESSING', 'CONFIRMED', 'PENDING'].includes(order.orderStatus) && (
+                            <button
+                                onClick={handleCancelOrder}
+                                className="btn btn-xs btn-outline border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-none uppercase tracking-widest ml-2"
+                            >
+                                Cancel Order
                             </button>
                         )}
                     </div>

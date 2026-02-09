@@ -15,7 +15,7 @@ const user = getUserFromStorage();
 
 const initialState = {
   user: user || null,
-  token: token || null,
+  token: token || null, 
   isAuthenticated: !!token,
   role: user?.role || 'GUEST',
   loading: false,

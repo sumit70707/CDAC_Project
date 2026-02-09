@@ -21,6 +21,6 @@ export default {
     require('daisyui'),
   ],
   daisyui: {
-    themes: ["light"], // Forces light theme for that clean "minimalist" look
+    themes: ["light"], // Forces light theme for that clean look
   },
 }

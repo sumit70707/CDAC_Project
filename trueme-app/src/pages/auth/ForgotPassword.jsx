@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { sendEmailOtp, verifyEmailOtp, forgotPassword } from '../../services/authService';
+import { sendForgotPasswordOtp, forgotPassword } from '../../services/authService';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -17,38 +17,19 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await sendEmailOtp(email);
+      await sendForgotPasswordOtp(email);
       toast.success(`OTP sent to ${email}`);
       setStep(2);
     } catch (error) {
       console.error(error);
-      // Mock success if backend fails (since endpoints might be missing)
-      toast.error("Failed to send OTP (Simulating success for UI testing)");
-      setStep(2);
+      const msg = error.response?.data?.message || "Failed to send OTP";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: Verify OTP
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await verifyEmailOtp(email, otp);
-      toast.success("OTP Verified");
-      setStep(3);
-    } catch (error) {
-      console.error(error);
-      // Mock success
-      toast.error("Invalid OTP (Simulating success)");
-      setStep(3);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 3: Reset Password
+  // Step 2: Reset Password (Corrected: Backend handles OTP verification + Reset in one go)
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
@@ -57,14 +38,14 @@ const ForgotPassword = () => {
     }
     setLoading(true);
     try {
-      await forgotPassword(email, newPassword);
+      // Changed: Pass all 3 args to the new service method
+      await forgotPassword(email, otp, newPassword);
       toast.success("Password reset successful! Please login.");
       navigate('/login');
     } catch (error) {
       console.error(error);
-      // Mock success
-      toast.success("Password reset successful (Simulated)!");
-      navigate('/login');
+      const msg = error.response?.data?.message || "Failed to reset password. Check OTP.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -79,8 +60,7 @@ const ForgotPassword = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             {step === 1 && "Enter your email to receive an OTP"}
-            {step === 2 && "Enter the OTP sent to your email"}
-            {step === 3 && "Create a new password"}
+            {step === 2 && "Enter OTP and your new password"}
           </p>
         </div>
 
@@ -108,9 +88,9 @@ const ForgotPassword = () => {
           </form>
         )}
 
-        {/* STEP 2: OTP */}
+        {/* STEP 2: OTP + NEW PASSWORD */}
         {step === 2 && (
-          <form className="mt-8 space-y-6" onSubmit={handleVerifyOtp}>
+          <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
             <div>
               <label className="block text-sm font-bold uppercase tracking-widest text-gray-700 mb-2">Enter OTP</label>
               <input
@@ -123,22 +103,7 @@ const ForgotPassword = () => {
                 placeholder="------"
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn bg-black text-white w-full rounded-none uppercase tracking-widest hover:bg-gray-800"
-            >
-              {loading ? <span className="loading loading-spinner"></span> : "Verify OTP"}
-            </button>
-            <div className="text-center">
-              <button type="button" onClick={() => setStep(1)} className="text-sm text-gray-500 hover:text-black hover:underline">Resend OTP</button>
-            </div>
-          </form>
-        )}
 
-        {/* STEP 3: RESET PASSWORD */}
-        {step === 3 && (
-          <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
             <div>
               <label className="block text-sm font-bold uppercase tracking-widest text-gray-700 mb-2">New Password</label>
               <input
@@ -163,6 +128,7 @@ const ForgotPassword = () => {
                 minLength={8}
               />
             </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -170,6 +136,9 @@ const ForgotPassword = () => {
             >
               {loading ? <span className="loading loading-spinner"></span> : "Reset Password"}
             </button>
+            <div className="text-center">
+              <button type="button" onClick={() => setStep(1)} className="text-sm text-gray-500 hover:text-black hover:underline">Resend OTP</button>
+            </div>
           </form>
         )}
 

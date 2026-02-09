@@ -121,7 +121,7 @@ const Home = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { name: 'Oily Skin', slug: 'oily', img: 'https://images.unsplash.com/photo-1596755389378-c31d2115167e?auto=format&fit=crop&w=800' },
+              { name: 'Oily Skin', slug: 'oily', img: 'https://plus.unsplash.com/premium_photo-1715604348627-d9a427e9a336?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
               { name: 'Dry Skin', slug: 'dry', img: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800' },
               { name: 'Sensitive Skin', slug: 'sensitive', img: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?auto=format&fit=crop&w=800' },
               { name: 'Normal Skin', slug: 'normal', img: 'https://images.unsplash.com/photo-1619451334792-150fd785ee74?auto=format&fit=crop&w=800' },
