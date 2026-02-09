@@ -1,0 +1,55 @@
+package com.trueme.productcatalogservice.service;
+
+import java.math.BigDecimal;
+
+import org.springframework.data.domain.Page;
+
+import com.trueme.productcatalogservice.dto.InternalProductDto;
+import com.trueme.productcatalogservice.dto.ProductRequestDto;
+import com.trueme.productcatalogservice.dto.ProductResponseDto;
+import com.trueme.productcatalogservice.entity.enums.ProductStatus;
+import com.trueme.productcatalogservice.entity.enums.ProductType;
+import com.trueme.productcatalogservice.entity.enums.SkinType;
+
+public interface ProductService {
+
+	ProductResponseDto createProduct(ProductRequestDto requestDto,Long sellerId);
+
+	Page<ProductResponseDto> getAllProducts(int page, int size, 
+			String sortBy, String direction);
+
+	ProductResponseDto getProductById(Long productId);
+
+	ProductResponseDto findProductByName(String name);
+
+	Page<ProductResponseDto> findByIsActive(Boolean isActive, int page,
+			int size, String sortBy, String direction);
+
+	ProductResponseDto updateProduct(Long productId, ProductRequestDto requestDto);
+
+	void deleteProduct(Long productId);
+
+	void activateProduct(Long productId);
+
+	Page<ProductResponseDto> filterProducts( ProductStatus status,
+			SkinType skinType,
+			ProductType productType,
+			BigDecimal minPrice,
+			BigDecimal maxPrice,
+			BigDecimal minPh,
+			BigDecimal maxPh,
+			int page,
+			int size,
+			String sortBy,
+			String direction);
+
+	void decreaseStock(Long productId, Integer quantity);
+
+	void increaseStock(Long productId, Integer quantity);
+	
+	public InternalProductDto getInternalProduct(Long productId);
+
+
+
+
+}
