@@ -27,6 +27,7 @@ public class SecurityConfig {
 
                 // Internal calls (Product / Payment / Kafka consumers etc.)
                 .requestMatchers("/internal/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
 
                 // Everything else requires JWT
                 .anyRequest().authenticated()

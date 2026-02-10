@@ -27,6 +27,8 @@ import com.trueme.orderservice.entity.enums.OrderEventType;
 import com.trueme.orderservice.entity.enums.OrderStatus;
 import com.trueme.orderservice.entity.enums.PaymentStatus;
 import com.trueme.orderservice.entity.enums.PaymentStatusFromPaymentService;
+import com.trueme.orderservice.errorcode.ServiceErrorCode;
+import com.trueme.orderservice.exception.ServiceUnavailableException;
 import com.trueme.orderservice.exception.order.OrderCancellationNotAllowedException;
 import com.trueme.orderservice.exception.order.OrderNotFoundException;
 import com.trueme.orderservice.kafka.OrderNotificationProducer;
@@ -34,6 +36,7 @@ import com.trueme.orderservice.repository.OrderItemRepository;
 import com.trueme.orderservice.repository.OrderRepository;
 import com.trueme.orderservice.service.OrderService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -119,10 +122,10 @@ public class OrderServiceImpl implements OrderService {
 	    for (OrderItem item : orderItems) {
 
 	        // restore stock
-	        productClient.increaseStock(
-	                item.getProductId(),
-	                new IncreaseStockRequest(item.getQuantity())
-	        );
+	    	increaseStockSafely(
+	    	        item.getProductId(),
+	    	        item.getQuantity()
+	    	);
 
 	        // mark item cancelled
 	        item.setFulfillmentStatus(FulfillmentStatus.CANCELLED);
@@ -151,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
 	                    FulfillmentStatus.CANCELLED
 	            )).toList();
 	    
-	    UserDetailsDto userDetails = authClient.getUserDetails(userId);
+	    UserDetailsDto userDetails = getUserDetailsSafely(userId);
 	    
 	    OrderEventDto cancelEvent = new OrderEventDto(
 	            OrderEventType.ORDER_CANCELLED,
@@ -255,6 +258,53 @@ public class OrderServiceImpl implements OrderService {
 	        default -> PaymentStatus.PENDING;
 	    };
 	}
+	
+	@CircuitBreaker(
+	        name = "productService",
+	        fallbackMethod = "increaseStockFallback"
+	)
+	public void increaseStockSafely(Long productId, Integer quantity) {
+	    productClient.increaseStock(
+	            productId,
+	            new IncreaseStockRequest(quantity)
+	    );
+	}
+
+	public void increaseStockFallback(
+	        Long productId,
+	        Integer quantity,
+	        Throwable ex){
+
+	    log.error("Failed to restore stock for productId={}", productId, ex);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,"Product Service Unavailable");
+	}
+
+	
+	@CircuitBreaker(
+	        name = "authService",
+	        fallbackMethod = "userDetailsFallback"
+	)
+	public UserDetailsDto getUserDetailsSafely(Long userId) {
+	    return authClient.getUserDetails(userId);
+	}
+
+	public UserDetailsDto userDetailsFallback(
+	        Long userId,
+	        Throwable ex) {
+
+	    log.error(
+	        "Auth service unavailable while fetching user details for userId={}",
+	        userId,
+	        ex
+	    );
+
+	    throw new ServiceUnavailableException(
+	        ServiceErrorCode.SERVICE_503,
+	        "Auth service is temporarily unavailable. Please try again later."
+	    );
+	}
+
 
 
 }

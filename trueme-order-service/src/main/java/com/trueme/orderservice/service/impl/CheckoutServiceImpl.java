@@ -32,6 +32,8 @@ import com.trueme.orderservice.entity.enums.OrderEventType;
 import com.trueme.orderservice.entity.enums.OrderStatus;
 import com.trueme.orderservice.entity.enums.PaymentStatus;
 import com.trueme.orderservice.entity.enums.ProductStatus;
+import com.trueme.orderservice.errorcode.ServiceErrorCode;
+import com.trueme.orderservice.exception.ServiceUnavailableException;
 import com.trueme.orderservice.exception.cart.CartNotFoundException;
 import com.trueme.orderservice.exception.order.AddressNotFoundException;
 import com.trueme.orderservice.exception.order.EmptyCartForOrderException;
@@ -44,6 +46,7 @@ import com.trueme.orderservice.repository.OrderItemRepository;
 import com.trueme.orderservice.repository.OrderRepository;
 import com.trueme.orderservice.service.CheckoutService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -107,7 +110,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 
 			// Fetch product from Product Catalog Service
 			ProductResponseDto product =
-					productClient.getProductById(cartItem.getProductId());
+			        getProductSafely(cartItem.getProductId());
 
 			// Product must be AVAILABLE
 			if (!ProductStatus.AVAILABLE.name()
@@ -149,8 +152,9 @@ public class CheckoutServiceImpl implements CheckoutService {
 			
 			
 			//decrease stock 
-			productClient.reduceStock(
-		            product.getId(),new ReduceStockRequest(cartItem.getQuantity()));
+		     reduceStockSafely(
+		    	        product.getId(),
+		    	        cartItem.getQuantity());
 
 			// accumulate order total
 			orderTotal = orderTotal.add(subtotal);
@@ -165,7 +169,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 		cartRepository.save(cart);
 		
 		//get usr details first
-		UserDetailsDto userDetails = authClient.getUserDetails(userId);
+		UserDetailsDto userDetails = getUserDetailsSafely(userId);
 		
 	    //  KAFKA ORDER_CREATED EVENT
 	    OrderEventDto orderEvent = new OrderEventDto(
@@ -183,15 +187,16 @@ public class CheckoutServiceImpl implements CheckoutService {
 
 
 		// 6 call paymey service
-		PaymentCheckoutResponseDto paymentResponse =
-	            paymentClient.createCheckout(
+	    PaymentCheckoutResponseDto paymentResponse =
+	            createPaymentSafely(
 	                    PaymentCheckoutRequest.builder()
 	                            .orderId(order.getId())
 	                            .orderNumber(orderNumber)
 	                            .userId(userId)
 	                            .amount(orderTotal)
 	                            .currency("INR")
-	                            .build());
+	                            .build()
+	            );
 
 	    log.info(
 	        "Checkout initiated for orderId={}, redirecting to Stripe",
@@ -208,7 +213,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 	    AddressResponseDto address;
 
 	    try {
-	        address = authClient.getDefaultAddress(userId);
+	    	address = getAddressSafely(userId);
 	    } catch (Exception ex) {
 	        log.error("Failed to fetch address for userId={}", userId, ex);
 	        throw new AddressNotFoundException(userId);
@@ -226,7 +231,105 @@ public class CheckoutServiceImpl implements CheckoutService {
 	        throw new RuntimeException("Failed to serialize address snapshot", e);
 	    }
 	}
+	
+	
+	
+	@CircuitBreaker(
+	        name = "productService",
+	        fallbackMethod = "getProductFallback"
+	)
+	public ProductResponseDto getProductSafely(Long productId) {
+	    return productClient.getProductById(productId);
+	}
+
+	public ProductResponseDto getProductFallback(
+	        Long productId,
+	        Throwable ex){
+
+	    log.error("Product service unavailable for productId={}", productId, ex);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,"Product Service Unavailable");
+	}
+	
+	
+
+	@CircuitBreaker(
+	        name = "productService",
+	        fallbackMethod = "reduceStockFallback"
+	)
+	public void reduceStockSafely(Long productId, Integer quantity) {
+	    productClient.reduceStock(
+	            productId,
+	            new ReduceStockRequest(quantity)
+	    );
+	}
+
+	public void reduceStockFallback(
+	        Long productId,
+	        Integer quantity,
+	        Throwable ex){
+
+	    log.error("Failed to reduce stock for productId={}", productId, ex);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,"Product Service Unavailable");
+	}
 
 
+	@CircuitBreaker(
+	        name = "paymentService",
+	        fallbackMethod = "paymentFallback"
+	)
+	public PaymentCheckoutResponseDto createPaymentSafely(
+	        PaymentCheckoutRequest request) {
+
+	    return paymentClient.createCheckout(request);
+	}
+
+	public PaymentCheckoutResponseDto paymentFallback(
+	        PaymentCheckoutRequest request,Throwable ex){
+
+	    log.error(
+	            "Payment service unavailable for orderId={}",
+	            request.getOrderId(),ex);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,
+	            "Payment service is currently unavailable. Please try again later."
+	    );
+	}
+
+	@CircuitBreaker(
+	        name = "authService",
+	        fallbackMethod = "addressFallback"
+	)
+	public AddressResponseDto getAddressSafely(Long userId) {
+	    return authClient.getDefaultAddress(userId);
+	}
+
+	public AddressResponseDto addressFallback(
+	        Long userId) throws ServiceUnavailableException {
+
+	    log.error("Auth service unavailable while fetching address for userId={}", userId);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,"Address service is temporarily unavailable. Please try again later."
+	    );
+	}
+
+	@CircuitBreaker(
+	        name = "authService",
+	        fallbackMethod = "userDetailsFallback"
+	)
+	public UserDetailsDto getUserDetailsSafely(Long userId) {
+	    return authClient.getUserDetails(userId);
+	}
+
+	public UserDetailsDto userDetailsFallback(
+	        Long userId,Throwable ex){
+
+		log.error("Auth service unavailable while fetching address for userId={}", userId,ex);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,"Auth service is temporarily unavailable. Please try again later.");
+	}
+
+	
 
 }

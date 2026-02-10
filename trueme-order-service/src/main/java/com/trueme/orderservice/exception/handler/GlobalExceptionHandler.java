@@ -11,12 +11,31 @@ import com.trueme.orderservice.errorcode.ProductErrorCode;
 import com.trueme.orderservice.exception.CartException;
 import com.trueme.orderservice.exception.OrderException;
 import com.trueme.orderservice.exception.ProductException;
+import com.trueme.orderservice.exception.ServiceUnavailableException;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+	@ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ApiResponse> handleCartException(ServiceUnavailableException ex) {
+
+        log.warn(
+            "CartException occurred | code={} | message={}",
+            ex.getErrorCode().getCode(),
+            ex.getMessage());
+
+        ApiResponse response = new ApiResponse(
+                ex.getMessage(),
+                ex.getErrorCode().getCode());
+
+        return new ResponseEntity<>(
+                response,
+                ex.getErrorCode().getStatus());
+    }
+
 
     // ================= CART EXCEPTIONS =================
     @ExceptionHandler(CartException.class)

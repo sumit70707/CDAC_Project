@@ -24,6 +24,7 @@ public class SecurityConfig {
 						"/v3/api-docs/**"
 						).permitAll()
 				.requestMatchers("/internal/**").permitAll()
+				.requestMatchers("/actuator/**").permitAll()
 
 				// Everything else requires JWT
 				.anyRequest().authenticated()

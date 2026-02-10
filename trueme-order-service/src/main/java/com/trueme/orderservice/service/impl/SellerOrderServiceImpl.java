@@ -1,7 +1,6 @@
 package com.trueme.orderservice.service.impl;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -24,12 +23,15 @@ import com.trueme.orderservice.entity.enums.FulfillmentStatus;
 import com.trueme.orderservice.entity.enums.OrderEventType;
 import com.trueme.orderservice.entity.enums.OrderStatus;
 import com.trueme.orderservice.entity.enums.PaymentStatus;
+import com.trueme.orderservice.errorcode.ServiceErrorCode;
+import com.trueme.orderservice.exception.ServiceUnavailableException;
 import com.trueme.orderservice.exception.order.OrderItemAlreadyDeliveredException;
 import com.trueme.orderservice.exception.order.OrderItemNotFoundException;
 import com.trueme.orderservice.kafka.OrderNotificationProducer;
 import com.trueme.orderservice.repository.OrderItemRepository;
 import com.trueme.orderservice.service.SellerOrderService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -109,7 +111,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 		orderItemRepository.save(orderItem);
 		
 		//get usr details first
-		UserDetailsDto userDetails = authClient.getUserDetails(userId);
+		UserDetailsDto userDetails = getUserDetailsSafely(userId);
 		
 	    // GENERATE ITEM_STATUS_UPDATED  EVENT
 
@@ -207,6 +209,22 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 	            .deliveredOrders(deliveredOrders)
 	            .totalIncome(totalIncome)
 	            .build();
+	}
+	
+	@CircuitBreaker(
+	        name = "authService",
+	        fallbackMethod = "userDetailsFallback"
+	)
+	public UserDetailsDto getUserDetailsSafely(Long userId) {
+	    return authClient.getUserDetails(userId);
+	}
+
+	public UserDetailsDto userDetailsFallback(
+	        Long userId){
+
+		log.error("Auth service unavailable while fetching address for userId={}", userId);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,"Auth service is temporarily unavailable. Please try again later.");
 	}
 
 

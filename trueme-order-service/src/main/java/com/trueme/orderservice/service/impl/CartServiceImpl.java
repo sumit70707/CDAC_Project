@@ -1,6 +1,5 @@
 package com.trueme.orderservice.service.impl;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +16,8 @@ import com.trueme.orderservice.entity.Cart;
 import com.trueme.orderservice.entity.CartItem;
 import com.trueme.orderservice.entity.enums.CartStatus;
 import com.trueme.orderservice.entity.enums.ProductStatus;
+import com.trueme.orderservice.errorcode.ServiceErrorCode;
+import com.trueme.orderservice.exception.ServiceUnavailableException;
 import com.trueme.orderservice.exception.cart.CartAlreadyCheckedOutException;
 import com.trueme.orderservice.exception.cart.CartItemNotFoundException;
 import com.trueme.orderservice.exception.cart.InvalidCartQuantityException;
@@ -26,6 +27,7 @@ import com.trueme.orderservice.repository.CartItemRepository;
 import com.trueme.orderservice.repository.CartRepository;
 import com.trueme.orderservice.service.CartService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +42,6 @@ public class CartServiceImpl implements CartService {
 	private final ModelMapper modelMapper;
 	private final ProductClient productClient;
 
-	Long sellerId = 5L; // TEMP dummy seller
 
 	@Override
 	public void addItemToCart(Long userId, AddToCartRequestDto request) {
@@ -53,7 +54,7 @@ public class CartServiceImpl implements CartService {
 		
 		//Fetch product from Product Catalog Service
 		ProductResponseDto product =
-		        productClient.getProductById(request.getProductId());
+		        getProductSafely(request.getProductId());
 
 		// availability check
 		if (!ProductStatus.AVAILABLE.name()
@@ -177,6 +178,24 @@ public class CartServiceImpl implements CartService {
 	private Optional<Cart> getActiveCart(Long userId) {
 		
 	    return cartRepository.findByUserIdAndActiveTrue(userId);
+	}
+
+	
+	@CircuitBreaker(
+	        name = "productService",
+	        fallbackMethod = "getProductFallback"
+	)
+	public ProductResponseDto getProductSafely(Long productId) {
+	    return productClient.getProductById(productId);
+	}
+
+	public ProductResponseDto getProductFallback(
+	        Long productId,
+	        Throwable ex){
+
+	    log.error("Product service unavailable for productId={}", productId, ex);
+
+	    throw new ServiceUnavailableException(ServiceErrorCode.SERVICE_503,"Product service is unavailable");
 	}
 
 
