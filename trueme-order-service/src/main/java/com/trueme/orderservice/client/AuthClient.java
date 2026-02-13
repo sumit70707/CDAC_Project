@@ -8,8 +8,7 @@ import com.trueme.orderservice.dto.AddressResponseDto;
 import com.trueme.orderservice.dto.UserDetailsDto;
 
 @FeignClient(
-        name = "trueme-auth-service",
-        url = "${trueme-auth-service.url}"
+        name = "trueme-auth-service"
 )
 public interface AuthClient {
 

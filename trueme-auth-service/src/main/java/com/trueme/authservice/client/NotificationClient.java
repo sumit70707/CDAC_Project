@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.trueme.authservice.dto.SendOtpEmailRequestDto;
 
 @FeignClient(
-        name = "trueme-notification-service",
-        url = "${trueme.notification.service.url}"
+        name = "trueme-notification-service"
 )
 public interface NotificationClient {
 

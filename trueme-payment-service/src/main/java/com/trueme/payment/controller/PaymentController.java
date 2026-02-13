@@ -21,7 +21,6 @@ import com.trueme.payment.service.PaymentService;
 import com.trueme.payment.service.StripeCheckoutService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/payments")

@@ -3,6 +3,7 @@ package com.trueme.orderservice.exception.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,6 +19,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<String> handleAccessDenied(AccessDeniedException ex) {
+		
+		 log.warn(
+		            "AccessDeniedException occurred | code={} | message={}",
+		            ex.getMessage());
+	    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+	            .body("Forbidden");
+	}
+
 	
 	@ExceptionHandler(ServiceUnavailableException.class)
     public ResponseEntity<ApiResponse> handleCartException(ServiceUnavailableException ex) {

@@ -1,0 +1,217 @@
+version: '3.8'
+
+services:
+
+  
+  # Infrastructure
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - trueme-net
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - trueme-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - trueme-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - trueme-net
+
+  # ===============================
+  # Eureka
+  # ===============================
+
+  eureka-server:
+    image: trueme/eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - trueme-net
+
+  # ===============================
+  # Backend Services
+  # ===============================
+
+  api-gateway:
+    image: trueme/api-gateway
+    container_name: api-gateway
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - eureka-server
+    networks:
+      - trueme-net
+
+  auth-service:
+    image: trueme/auth-service
+    container_name: auth-service
+    env_file:
+      - .env
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/trueme_auth?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB_INDEX: 0
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - mysql
+      - redis
+      - kafka
+      - eureka-server
+    networks:
+      - trueme-net
+
+  product-service:
+    image: trueme/product-service
+    container_name: product-service
+    env_file:
+      - .env
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/trueme_catalog?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB_INDEX: 1
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - mysql
+      - redis
+      - eureka-server
+    networks:
+      - trueme-net
+
+  order-service:
+    image: trueme/order-service
+    container_name: order-service
+    env_file:
+      - .env
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/trueme_order?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - mysql
+      - kafka
+      - eureka-server
+    networks:
+      - trueme-net
+
+  payment-service:
+    image: trueme/payment-service
+    container_name: payment-service
+    env_file:
+      - .env
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/trueme_payment?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_SUCCESS_URL: http://localhost/payment/success?session_id={CHECKOUT_SESSION_ID}
+      STRIPE_CANCEL_URL: http://localhost/payment/cancel
+    depends_on:
+      - mysql
+      - kafka
+      - eureka-server
+    networks:
+      - trueme-net
+
+  notification-service:
+    image: trueme/notification-service
+    container_name: notification-service
+    env_file:
+      - .env
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/trueme_notification?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    depends_on:
+      - mysql
+      - kafka
+      - eureka-server
+    networks:
+      - trueme-net
+
+  frontend:
+    build: ./trueme-app
+    container_name: trueme-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - trueme-net
+
+
+networks:
+  trueme-net:
+    driver: bridge
+
+volumes:
+  mysql_data:

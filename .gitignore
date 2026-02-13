@@ -2,3 +2,4 @@
 RemoteSystemsTempFiles/
 Logs/
 trueme-infra/
+.env

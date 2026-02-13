@@ -280,12 +280,12 @@ const Home = () => {
             <div className="p-10 border border-gray-100 hover:bg-gray-50 transition-colors">
               <div className="text-3xl mb-4">✉️</div>
               <h4 className="text-sm font-black uppercase tracking-widest mb-2">Email</h4>
-              <a href="mailto:support@trueme.com" className="text-xl font-bold hover:underline">support@trueme.com</a>
+              <a href="mailto:support@trueme.com" className="text-xl font-bold hover:underline">trume.skincare@gmail.com</a>
             </div>
             <div className="p-10 border border-gray-100 hover:bg-gray-50 transition-colors">
               <div className="text-3xl mb-4">📞</div>
               <h4 className="text-sm font-black uppercase tracking-widest mb-2">Phone</h4>
-              <a href="tel:+919876543210" className="text-xl font-bold hover:underline">+91 98765 43210</a>
+              <a href="tel:+919876543210" className="text-xl font-bold hover:underline">+91 9325365861</a>
             </div>
           </div>
         </div>

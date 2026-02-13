@@ -66,7 +66,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 	private Long addressId;
 	private final PaymentClient paymentClient;
 	private final OrderNotificationProducer orderNotificationProducer;
-	List<OrderItemEventDto> orderItemEvents = new ArrayList<>();
+	
 
 
 
@@ -74,10 +74,12 @@ public class CheckoutServiceImpl implements CheckoutService {
 	public ApiResponse checkout(Long userId) {
 
 		log.info("Checkout started for userId={}", userId);
+		
+		List<OrderItemEventDto> orderItemEvents = new ArrayList<>();
 
 		// 1️ Fetch ACTIVE cart only
-		Cart cart = cartRepository.findByUserIdAndActiveTrue(userId)
-				.orElseThrow(() -> new CartNotFoundException(userId));
+		Cart cart = cartRepository.findByUserIdAndActiveTrueForUpdate(userId)
+		        .orElseThrow(() -> new CartNotFoundException(userId));
 
 		List<CartItem> cartItems = cartItemRepository.findByCartId(cart.getId());
 

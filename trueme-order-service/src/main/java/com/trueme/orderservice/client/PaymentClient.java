@@ -8,8 +8,7 @@ import com.trueme.orderservice.dto.PaymentCheckoutRequest;
 import com.trueme.orderservice.dto.PaymentCheckoutResponseDto;
 
 @FeignClient(
-	    name = "trume-payment-service",
-	    url = "${trume.payment.service.url}"
+	    name = "trueme-payment-service"
 	)
 	public interface PaymentClient {
 

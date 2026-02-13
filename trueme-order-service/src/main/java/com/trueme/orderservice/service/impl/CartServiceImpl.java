@@ -160,19 +160,25 @@ public class CartServiceImpl implements CartService {
 	
 	private Cart getOrCreateActiveCart(Long userId) {
 
-	    return cartRepository.findByUserIdAndActiveTrue(userId)
-	            .orElseGet(() -> {
-	                log.info("Creating new ACTIVE cart for userId={}", userId);
+	    // Lock existing ACTIVE cart row (if present)
+	    Optional<Cart> existingCart =
+	            cartRepository.findByUserIdAndActiveTrueForUpdate(userId);
 
-	                Cart cart = Cart.builder()
-	                        .userId(userId)
-	                        .active(true)         //crerate cart withstatus true      
-	                        .status(CartStatus.ACTIVE)  // lifecycle info
-	                        .build();
+	    if (existingCart.isPresent()) {
+	        return existingCart.get();
+	    }
 
-	                return cartRepository.save(cart);
-	            });
+	    log.info("Creating new ACTIVE cart for userId={}", userId);
+
+	    Cart cart = Cart.builder()
+	            .userId(userId)
+	            .active(true)
+	            .status(CartStatus.ACTIVE)
+	            .build();
+
+	    return cartRepository.save(cart);
 	}
+
 
 	
 	private Optional<Cart> getActiveCart(Long userId) {

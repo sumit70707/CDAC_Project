@@ -25,7 +25,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 
-import Dashboard from './pages/customer/Dashboard'; // Customer Profile
+import Dashboard from './pages/customer/Dashboard';
 import MyOrders from './pages/customer/MyOrders';
 import OrderDetails from './pages/customer/OrderDetails';
 import Wishlist from './pages/customer/Wishlist';
@@ -33,23 +33,16 @@ import Wishlist from './pages/customer/Wishlist';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import SellerDashboard from './pages/seller/SellerDashboard';
 
-// Helper to redirect to correct dashboard
-const DashboardRedirect = () => {
-  // You might want to enhance this to check role and redirect accordingly
-  // For now, it just redirects to login or handled by ProtectedRoute
-  return <Navigate to="/profile" replace />;
-};
-
-// Component to handle side effects of Auth (like fetching cart)
+// Component to handle side effects of Auth
 const AuthHandler = () => {
-  const { isAuthenticated } = useSelector(state => state.auth);
+  const { isAuthenticated, role } = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
   React.useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && role === 'CUSTOMER') {
       dispatch(fetchCart());
     }
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, role, dispatch]);
 
   return null;
 };
@@ -57,91 +50,90 @@ const AuthHandler = () => {
 function App() {
   return (
     <Router>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#fff',
-            color: '#000',
-            border: '1px solid #000',
-            fontFamily: 'sans-serif',
-            fontWeight: 'bold',
-            fontSize: '14px',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
+      <Toaster position="top-right" />
+
       <AuthHandler />
+
       <Routes>
-        {/* --- PUBLIC ROUTES (MainLayout) --- */}
+
+        {/* ================= PAYMENT REDIRECT ROUTES ================= */}
+        {/* These must NOT be inside layouts */}
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/cancel" element={<PaymentCancel />} />
+
+        {/* ================= PUBLIC ROUTES ================= */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/shop" element={
-            <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN', 'SELLER']}>
-              <Shop />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/shop"
+            element={
+              <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN', 'SELLER']}>
+                <Shop />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-
-          {/* Checkout & Payment */}
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/payment/success" element={<PaymentSuccess />} />
-          <Route path="/payment/cancel" element={<PaymentCancel />} />
         </Route>
 
-        {/* --- AUTH ROUTES (AuthLayout) --- */}
+        {/* ================= AUTH ROUTES ================= */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
 
-        {/* --- CUSTOMER PROTECTED ROUTES (MainLayout) --- */}
+        {/* ================= CUSTOMER ROUTES ================= */}
         <Route element={<MainLayout />}>
-          <Route path="/profile" element={
-            <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN', 'SELLER']}>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/orders" element={
-            <ProtectedRoute allowedRoles={['CUSTOMER']}>
-              <MyOrders />
-            </ProtectedRoute>
-          } />
-          <Route path="/orders/:orderId" element={
-            <ProtectedRoute allowedRoles={['CUSTOMER']}>
-              <OrderDetails />
-            </ProtectedRoute>
-          } />
-          <Route path="/wishlist" element={
-            <ProtectedRoute allowedRoles={['CUSTOMER']}>
-              <Wishlist />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN', 'SELLER']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute allowedRoles={['CUSTOMER']}>
+                <MyOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:orderId"
+            element={
+              <ProtectedRoute allowedRoles={['CUSTOMER']}>
+                <OrderDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute allowedRoles={['CUSTOMER']}>
+                <Wishlist />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
-        {/* --- ADMIN / SELLER DASHBOARD (AdminLayout) --- */}
-        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'SELLER']}><AdminLayout /></ProtectedRoute>}>
+        {/* ================= ADMIN / SELLER ================= */}
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'SELLER']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
-          {/* Add more inner routes here later */}
         </Route>
 
         {/* Catch all */}

@@ -10,9 +10,7 @@ import com.trueme.payment.dto.PaymentCheckoutRequestDto;
 import com.trueme.payment.dto.PaymentCheckoutResponseDto;
 import com.trueme.payment.dto.PaymentCreateRequestDto;
 import com.trueme.payment.dto.PaymentResponseDto;
-import com.trueme.payment.dto.StripeCheckoutResponseDto;
 import com.trueme.payment.service.PaymentService;
-import com.trueme.payment.service.StripeCheckoutService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

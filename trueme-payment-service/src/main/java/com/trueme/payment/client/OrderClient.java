@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.trueme.payment.dto.OrderPaymentStatusUpdateRequestDto;
 
 @FeignClient(
-	    name = "trueme-order-service",
-	    url = "${trueme.order.service.url}"
+	    name = "trueme-order-service"
 	)
 	public interface OrderClient {
 ///internal/orders/payment-status

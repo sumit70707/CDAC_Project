@@ -10,8 +10,7 @@ import com.trueme.orderservice.dto.IncreaseStockRequest;
 import com.trueme.orderservice.dto.ProductResponseDto;
 import com.trueme.orderservice.dto.ReduceStockRequest;
 
-@FeignClient(name = "trueme-product-catalog-service",
-			url = "${trueme-product-catalog-service.url}")
+@FeignClient(name = "trueme-product-catalog-service")
 public interface ProductClient {
 
     // fetch product for cart / checkout validation

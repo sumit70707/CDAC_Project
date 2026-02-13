@@ -8,13 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(
-    name = "carts",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uq_cart_user", 
-        		columnNames = {"user_id", "is_active"})
-    }
-)
+@Table(name = "carts")
 @Getter
 @Setter
 @NoArgsConstructor

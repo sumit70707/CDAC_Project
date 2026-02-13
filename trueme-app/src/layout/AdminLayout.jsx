@@ -47,7 +47,7 @@ const AdminLayout = () => {
                         <Link to="/" className="text-2xl font-bold font-serif italic text-primary px-4">TrueMe <span className="text-xs font-sans not-italic text-neutral-content badge badge-neutral ml-2">{isAdmin ? 'Admin' : 'Seller'}</span></Link>
                     </li>
 
-                    {/* Links */}
+                    {/* Links
                     <li><Link to={isAdmin ? "/admin" : "/seller/dashboard"}>Dashboard Overview</Link></li>
 
                     {isAdmin && (
@@ -61,7 +61,7 @@ const AdminLayout = () => {
                             <li><Link to="/seller/dashboard?view=PRODUCTS">My Products</Link></li>
                             <li><Link to="/seller/dashboard?view=ORDERS">Order Management</Link></li>
                         </>
-                    )}
+                    )} */}
 
                     <div className="divider"></div>
                     <li><button onClick={handleLogout} className="text-error">Logout</button></li>
