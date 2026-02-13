@@ -165,8 +165,9 @@ services:
       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      STRIPE_SUCCESS_URL: http://localhost/payment/success?session_id={CHECKOUT_SESSION_ID}
-      STRIPE_CANCEL_URL: http://localhost/payment/cancel
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL}
+      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL}
+
     depends_on:
       - mysql
       - kafka
