@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
 
-  
+  # ===============================
   # Infrastructure
+  # ===============================
 
   mysql:
     image: mysql:8
@@ -55,7 +56,7 @@ services:
   # ===============================
 
   eureka-server:
-    image: trueme/eureka-server
+    image: sumit656/eureka-server:latest
     container_name: eureka-server
     ports:
       - "8761:8761"
@@ -67,7 +68,7 @@ services:
   # ===============================
 
   api-gateway:
-    image: trueme/api-gateway
+    image: sumit656/api-gateway:latest
     container_name: api-gateway
     env_file:
       - .env
@@ -82,7 +83,7 @@ services:
       - trueme-net
 
   auth-service:
-    image: trueme/auth-service
+    image: sumit656/auth-service:latest
     container_name: auth-service
     env_file:
       - .env
@@ -107,7 +108,7 @@ services:
       - trueme-net
 
   product-service:
-    image: trueme/product-service
+    image: sumit656/product-service:latest
     container_name: product-service
     env_file:
       - .env
@@ -130,7 +131,7 @@ services:
       - trueme-net
 
   order-service:
-    image: trueme/order-service
+    image: sumit656/order-service:latest
     container_name: order-service
     env_file:
       - .env
@@ -151,7 +152,7 @@ services:
       - trueme-net
 
   payment-service:
-    image: trueme/payment-service
+    image: sumit656/payment-service:latest
     container_name: payment-service
     env_file:
       - .env
@@ -167,7 +168,6 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL}
-
     depends_on:
       - mysql
       - kafka
@@ -176,7 +176,7 @@ services:
       - trueme-net
 
   notification-service:
-    image: trueme/notification-service
+    image: sumit656/notification-service:latest
     container_name: notification-service
     env_file:
       - .env
@@ -200,7 +200,7 @@ services:
       - trueme-net
 
   frontend:
-    build: ./trueme-app
+    image: sumit656/true_me-frontend:latest
     container_name: trueme-frontend
     ports:
       - "80:80"
@@ -208,7 +208,6 @@ services:
       - api-gateway
     networks:
       - trueme-net
-
 
 networks:
   trueme-net:
