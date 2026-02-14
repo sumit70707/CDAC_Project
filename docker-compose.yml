@@ -31,6 +31,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -40,6 +41,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
+    restart: always
     depends_on:
       - zookeeper
     environment:
@@ -58,6 +60,7 @@ services:
   eureka-server:
     image: sumit656/eureka-server:latest
     container_name: eureka-server
+    restart: always
     ports:
       - "8761:8761"
     networks:
@@ -70,6 +73,7 @@ services:
   api-gateway:
     image: sumit656/api-gateway:latest
     container_name: api-gateway
+    restart: always
     env_file:
       - .env
     ports:
@@ -85,6 +89,7 @@ services:
   auth-service:
     image: sumit656/auth-service:latest
     container_name: auth-service
+    restart: always
     env_file:
       - .env
     ports:
@@ -110,6 +115,7 @@ services:
   product-service:
     image: sumit656/product-service:latest
     container_name: product-service
+    restart: always
     env_file:
       - .env
     ports:
@@ -133,6 +139,7 @@ services:
   order-service:
     image: sumit656/order-service:latest
     container_name: order-service
+    restart: always
     env_file:
       - .env
     ports:
@@ -154,6 +161,7 @@ services:
   payment-service:
     image: sumit656/payment-service:latest
     container_name: payment-service
+    restart: always
     env_file:
       - .env
     ports:
@@ -178,6 +186,7 @@ services:
   notification-service:
     image: sumit656/notification-service:latest
     container_name: notification-service
+    restart: always
     env_file:
       - .env
     ports:
@@ -202,6 +211,7 @@ services:
   frontend:
     image: sumit656/true_me-frontend:latest
     container_name: trueme-frontend
+    restart: always
     ports:
       - "80:80"
     depends_on:
