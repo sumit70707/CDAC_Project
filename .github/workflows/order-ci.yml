@@ -1,0 +1,47 @@
+# .github/workflows/order-ci.yml
+
+name: Order Service CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'trueme-order-service/**'
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'trueme-order-service/**'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: trueme-order-service
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('trueme-order-service/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Test Order Service
+        run: mvn clean verify -DskipTests
