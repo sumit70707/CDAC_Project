@@ -1,0 +1,47 @@
+# .github/workflows/product-ci.yml
+
+name: Product Service CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'trueme-product-catalog-service/**'
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'trueme-product-catalog-service/**'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: trueme-product-catalog-service
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('trueme-product-catalog-service/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Test Product Catalog Service
+        run: mvn clean verify -DskipTests
