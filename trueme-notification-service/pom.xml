@@ -8,6 +8,7 @@
 		<version>3.2.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+	<!-- Testing Notification Service Workflow -->
 	<groupId>com.trueme</groupId>
 	<artifactId>trueme-notification-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
