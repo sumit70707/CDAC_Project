@@ -8,7 +8,7 @@
 		<version>3.2.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<!-- Testing Product Service Workflow -->
+	
 	<groupId>com.trueme</groupId>
 	<artifactId>trueme-product-catalog-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
