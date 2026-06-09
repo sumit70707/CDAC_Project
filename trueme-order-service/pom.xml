@@ -8,7 +8,7 @@
 		<version>3.2.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<!-- Testing Order Service Workflow -->
+	
 	<groupId>com.trueme</groupId>
 	<artifactId>trueme-order-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
