@@ -13,7 +13,7 @@ const axiosInstance = axios.create({
     },
 });
 
-// Request Interceptor: Attach Token
+// Request Interceptor: Attached Token 
 axiosInstance.interceptors.request.use(
     (config) => {
         // Read token directly from localStorage to avoid importing store
