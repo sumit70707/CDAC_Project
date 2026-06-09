@@ -112,9 +112,9 @@ services:
     networks:
       - trueme-net
 
-  product-service:
-    image: sumit656/product-service:latest
-    container_name: product-service
+  product-catalog-service:
+    image: sumit656/product-catalog-service:latest
+    container_name: product-catalog-service
     restart: always
     env_file:
       - .env
@@ -209,7 +209,7 @@ services:
       - trueme-net
 
   frontend:
-    image: sumit656/true_me-frontend:latest
+    image: sumit656/frontend:latest
     container_name: trueme-frontend
     restart: always
     ports:
