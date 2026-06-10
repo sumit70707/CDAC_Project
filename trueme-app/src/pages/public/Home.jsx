@@ -284,8 +284,8 @@ const Home = () => {
             </div>
             <div className="p-10 border border-gray-100 hover:bg-gray-50 transition-colors">
               <div className="text-3xl mb-4">📞</div>
-              <h4 className="text-sm font-black uppercase tracking-widest mb-2">Phone</h4>
-              <a href="tel:+919876543210" className="text-xl font-bold hover:underline">+91 77</a>
+              <h4 className="text-sm font-black uppercase tracking-widest mb-2">CELL_Phone</h4>
+              <a href="tel:+919876543210" className="text-xl font-bold hover:underline">+91 9890567709</a>
             </div>
           </div>
         </div>
