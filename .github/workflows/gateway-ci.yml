@@ -62,3 +62,9 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:${{ github.sha }}
+
+      - name: Trigger Jenkins Deployment
+        run: |
+          curl -X POST \
+          "${{ secrets.JENKINS_URL }}/job/trueme-deploy/buildWithParameters?token=trueme-deploy-token&SERVICE_NAME=api-gateway" \
+          --user "${{ secrets.JENKINS_USERNAME }}:${{ secrets.JENKINS_API_TOKEN }}"
