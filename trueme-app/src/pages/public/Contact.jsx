@@ -18,7 +18,7 @@ const Contact = () => {
                         <h3 className="text-xl font-bold uppercase tracking-widest mb-4">Email Us</h3>
                         <p className="text-gray-500 mb-6">For general inquiries and support</p>
                         <a href="mailto:support@trueme.com" className="text-2xl font-black hover:underline">
-                            support@trueme.com
+                            trume.skincare@gmail.com
                         </a>
                     </div>
 
@@ -28,7 +28,7 @@ const Contact = () => {
                         <h3 className="text-xl font-bold uppercase tracking-widest mb-4">Call Us</h3>
                         <p className="text-gray-500 mb-6">Mon-Fri from 9am to 6pm</p>
                         <a href="tel:+919876543210" className="text-2xl font-black hover:underline">
-                            +91 98765 43210
+                            +91 9325365861
                         </a>
                     </div>
                 </div>

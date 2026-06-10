@@ -279,13 +279,13 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto font-sans">
             <div className="p-10 border border-gray-100 hover:bg-gray-50 transition-colors">
               <div className="text-3xl mb-4">✉️</div>
-              <h4 className="text-sm font-black uppercase tracking-widest mb-2">Email_ID</h4>
-              <a href="mailto:support@trueme.com" className="text-xl font-bold hover:underline">ABD__trume.skincare@gmail.com</a>
+              <h4 className="text-sm font-black uppercase tracking-widest mb-2">Email</h4>
+              <a href="mailto:support@trueme.com" className="text-xl font-bold hover:underline">trume.skincare@gmail.com</a>
             </div>
             <div className="p-10 border border-gray-100 hover:bg-gray-50 transition-colors">
               <div className="text-3xl mb-4">📞</div>
-              <h4 className="text-sm font-black uppercase tracking-widest mb-2">CELL_Phone_Number</h4>
-              <a href="tel:+919876543210" className="text-xl font-bold hover:underline">+91 8767207980</a>
+              <h4 className="text-sm font-black uppercase tracking-widest mb-2">Phone</h4>
+              <a href="tel:+919876543210" className="text-xl font-bold hover:underline">+91 9325365861</a>
             </div>
           </div>
         </div>
