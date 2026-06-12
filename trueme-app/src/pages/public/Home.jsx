@@ -242,7 +242,7 @@ const Home = () => {
           <h2 className="text-4xl font-black uppercase tracking-tighter mb-8">The TrueMe Promise</h2>
           <div className="max-w-4xl mx-auto">
             <p className="text-xl text-gray-700 leading-relaxed mb-12 font-light">
-              "True beauty isn't about covering up; it's about revealing what's already there.
+              "True beauty isn't about covering up, it's about revealing what's already there.
               At TrueMe, we craft formulations that respect your skin's natural balance.
               No harsh chemicals, no empty promises—just pure, effective care for the skin you're in."
             </p>
