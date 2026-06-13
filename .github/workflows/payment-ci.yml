@@ -51,20 +51,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set Image Tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA::12}" >> $GITHUB_ENV
+
       - name: Build Docker Image
         run: |
           docker build \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/payment-service:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/payment-service:${{ github.sha }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/payment-service:${IMAGE_TAG} \
             .
 
       - name: Push Docker Images
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/payment-service:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/payment-service:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/payment-service:${IMAGE_TAG}
 
       - name: Trigger Jenkins Deployment
         run: |
           curl -X POST \
-          "${{ secrets.JENKINS_URL }}/job/trueme-deploy/buildWithParameters?token=trueme-deploy-token&SERVICE_NAME=payment-service" \
+          "${{ secrets.JENKINS_URL }}/job/trueme-deploy/buildWithParameters?token=trueme-deploy-token&SERVICE_NAME=payment-service&IMAGE_TAG=${IMAGE_TAG}" \
           --user "${{ secrets.JENKINS_USERNAME }}:${{ secrets.JENKINS_API_TOKEN }}"
