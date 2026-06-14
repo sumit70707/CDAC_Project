@@ -244,7 +244,7 @@ const Home = () => {
             <p className="text-xl text-gray-700 leading-relaxed mb-12 font-light">
               "True beauty isn't about covering up, it's about revealing what's already there.
               At TrueMe, we craft formulations that respect your skin's natural balance.
-              No harsh chemicals, no empty promises—just pure, effective care for the skin you're in. YES SUmit"
+              No harsh chemicals, no empty promises—just pure, effective care for the skin you're in. YES SUmit SHELKE"
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
               <div className="bg-white p-8 border-l-4 border-black">
