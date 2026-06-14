@@ -62,6 +62,24 @@ jobs:
 
       - name: Trigger Jenkins Deployment
         run: |
-          curl -X POST \
-          "${{ secrets.JENKINS_URL }}/job/trueme-deploy/buildWithParameters?token=trueme-deploy-token&SERVICE_NAME=frontend&IMAGE_TAG=${IMAGE_TAG}" \
-          --user "${{ secrets.JENKINS_USERNAME }}:${{ secrets.JENKINS_API_TOKEN }}"
+          for i in {1..12}
+          do
+            echo "Deployment attempt $i..."
+
+            curl -f -X POST \
+              "${{ secrets.JENKINS_URL }}/job/trueme-deploy/buildWithParameters?token=trueme-deploy-token&SERVICE_NAME=frontend&IMAGE_TAG=${IMAGE_TAG}" \
+              --user "${{ secrets.JENKINS_USERNAME }}:${{ secrets.JENKINS_API_TOKEN }}"
+
+            if [ $? -eq 0 ]; then
+              echo "Jenkins deployment triggered successfully."
+              exit 0
+            fi
+
+            if [ $i -lt 12 ]; then
+              echo "Attempt $i failed. Retrying in 5 minutes..."
+              sleep 300
+            fi
+          done
+
+          echo "Jenkins deployment trigger failed after 12 attempts."
+          exit 1
