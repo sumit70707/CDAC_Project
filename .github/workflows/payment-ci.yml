@@ -67,7 +67,30 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/payment-service:${IMAGE_TAG}
 
       - name: Trigger Jenkins Deployment
+        shell: bash
         run: |
-          curl -X POST \
-          "${{ secrets.JENKINS_URL }}/job/trueme-deploy/buildWithParameters?token=trueme-deploy-token&SERVICE_NAME=payment-service&IMAGE_TAG=${IMAGE_TAG}" \
-          --user "${{ secrets.JENKINS_USERNAME }}:${{ secrets.JENKINS_API_TOKEN }}"
+          set +e
+
+          for i in {1..12}
+          do
+            echo "Deployment attempt $i..."
+
+            curl -f -X POST \
+              "${{ secrets.JENKINS_URL }}/job/trueme-deploy/buildWithParameters?token=trueme-deploy-token&SERVICE_NAME=payment-service&IMAGE_TAG=${IMAGE_TAG}" \
+              --user "${{ secrets.JENKINS_USERNAME }}:${{ secrets.JENKINS_API_TOKEN }}"
+
+            CURL_EXIT_CODE=$?
+
+            if [ $CURL_EXIT_CODE -eq 0 ]; then
+              echo "Jenkins deployment triggered successfully."
+              exit 0
+            fi
+
+            if [ $i -lt 12 ]; then
+              echo "Attempt $i failed with exit code $CURL_EXIT_CODE. Retrying in 5 minutes..."
+              sleep 300
+            fi
+          done
+
+          echo "Jenkins deployment trigger failed after 12 attempts."
+          exit 1
