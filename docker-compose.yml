@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
 
@@ -58,7 +57,7 @@ services:
   # ===============================
 
   eureka-server:
-    image: sumit656/eureka-server:latest
+    image: sumit656/eureka-server:${EUREKA_SERVER_TAG}
     container_name: eureka-server
     restart: always
     ports:
@@ -71,7 +70,7 @@ services:
   # ===============================
 
   api-gateway:
-    image: sumit656/api-gateway:latest
+    image: sumit656/api-gateway:${API_GATEWAY_TAG}
     container_name: api-gateway
     restart: always
     env_file:
@@ -87,7 +86,7 @@ services:
       - trueme-net
 
   auth-service:
-    image: sumit656/auth-service:latest
+    image: sumit656/auth-service:${AUTH_SERVICE_TAG}
     container_name: auth-service
     restart: always
     env_file:
@@ -113,7 +112,7 @@ services:
       - trueme-net
 
   product-catalog-service:
-    image: sumit656/product-catalog-service:latest
+    image: sumit656/product-catalog-service:${PRODUCT_CATALOG_SERVICE_TAG}
     container_name: product-catalog-service
     restart: always
     env_file:
@@ -137,7 +136,7 @@ services:
       - trueme-net
 
   order-service:
-    image: sumit656/order-service:latest
+    image: sumit656/order-service:${ORDER_SERVICE_TAG}
     container_name: order-service
     restart: always
     env_file:
@@ -159,7 +158,7 @@ services:
       - trueme-net
 
   payment-service:
-    image: sumit656/payment-service:latest
+    image: sumit656/payment-service:${PAYMENT_SERVICE_TAG}
     container_name: payment-service
     restart: always
     env_file:
@@ -184,7 +183,7 @@ services:
       - trueme-net
 
   notification-service:
-    image: sumit656/notification-service:latest
+    image: sumit656/notification-service:${NOTIFICATION_SERVICE_TAG}
     container_name: notification-service
     restart: always
     env_file:
@@ -209,7 +208,7 @@ services:
       - trueme-net
 
   frontend:
-    image: sumit656/frontend:latest
+    image: sumit656/frontend:${FRONTEND_TAG}
     container_name: trueme-frontend
     restart: always
     ports:
